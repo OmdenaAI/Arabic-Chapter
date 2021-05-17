@@ -1,2 +1,3 @@
 # Arabic-Chapter
-# Lemmatization branch added
+### Lemmatization branch added
+### Running Lemmatizer
