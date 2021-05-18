@@ -163,7 +163,7 @@ class DataCatalogue(object):
 
     @staticmethod
     def downloads_list():
-        return [v for _, v in 
+        return [v for _, v in
                 sorted(DataCatalogue._catalogue['downloads'].items())]
 
     @staticmethod
