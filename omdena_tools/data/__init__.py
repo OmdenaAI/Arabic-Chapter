@@ -158,7 +158,7 @@ class DataCatalogue(object):
         if download not in DataCatalogue._catalogue['downloads']:
             raise DataLookupException('Undefined download {}.'.format(
                                       repr(download)))
-        
+
         return DataCatalogue._catalogue['downloads'][download]
 
     @staticmethod
