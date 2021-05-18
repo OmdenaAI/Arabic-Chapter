@@ -79,7 +79,7 @@
                     "license": "Apache 2.0"
                 }
             }
-        },
+        }
         // "NamedEntityRecognition": {
         //     "default": "arabert",
         //     "datasets": {
