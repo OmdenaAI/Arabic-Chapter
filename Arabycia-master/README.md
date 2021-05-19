@@ -2,6 +2,7 @@
 Arabic NLP tool Built using NLTK, Pyaramorph, and Sinai-corpus to perform:
   - Tokenization
   - Lemmatization
+  - Stop Words Removal
   - Segmentation
   - Transliteration
   - Reverse Transliteration
