@@ -12,23 +12,35 @@ class ArabicTokenizer:
 
     def word_tokenize(self, text):
         if(self.word_method == "tree_bank"):
+            words = []
             tokenizer = TreebankWordTokenizer()
-            text = tokenizer.tokenize(text)
-            return text
+            for i in text:
+                words.extend(tokenizer.tokenize(i))
+            return words
 
         elif(self.word_method == "word_punkt"):
+            words = []
             tokenizer = WordPunctTokenizer()
-            text = tokenizer.tokenize(text)
-            return text
+            for i in text:
+                words.extend(tokenizer.tokenize(i))
+            return words
 
         elif(self.word_method == "reg_exp"):
+            words = []
             tokenizer = RegexpTokenizer("[\w']+")
-            text = tokenizer.tokenize(text)
-            return text
+            for i in text:
+                words.extend(tokenizer.tokenize(i))
+            return words
 
         elif(self.word_method == "keras"):
-            return text_to_word_sequence(text)
+            words = []
+            for i in text:
+                words.extend(text_to_word_sequence(i))
+            return words
 
         else:
-            return word_tokenize(text)
+            words = []
+            for i in text:
+                words.extend(text_to_word_sequence(i))
+            return words
 
