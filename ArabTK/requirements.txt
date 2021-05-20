@@ -1,0 +1,5 @@
+joblib
+glob
+arabicstopwords
+tensorflow-gpu
+keras
