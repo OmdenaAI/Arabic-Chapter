@@ -1,5 +1,5 @@
 
-This is datasets contain approx. 24000  standard Arabic articles collected on 2021. 
+This datasets contain approx. 24000  standard Arabic articles collected on 2021. 
 
 -Sources 
 1. https://www.alarabiya.net
