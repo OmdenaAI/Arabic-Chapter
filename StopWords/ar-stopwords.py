@@ -1,4 +1,4 @@
-ar-stopwords = set(
+ar_stopwords = set(
     """
 من
 نحو
