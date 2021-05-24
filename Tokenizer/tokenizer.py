@@ -32,7 +32,7 @@ class tokenization:
         self.tokens = []
         self.sentences = Sentencizer(sentences).sentences
         self._split_tokens = split_tokens
-        self._punctuations = """'!"#$%&'()*+,«».؛،/:؟?@[\]^_`{|}~"""
+        self._punctuations = """'!"#$%&'()*+,«».؛،/:؟?@[\]^_`{|}~”“"""
         self._tokenize()
 
     def _tokenize(self):
