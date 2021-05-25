@@ -389,4 +389,4 @@ ar_stopwords = set(
 """.split()
 )
 
-print(ar_stopwords)
+#print(ar_stopwords)
