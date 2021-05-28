@@ -33,10 +33,10 @@ def test_acc(test_file,lemmas):
     a=accuracy(reference,test)
     return(a*100)
 
-  ########------test--------------##  
-#filename= "/home/ehab/Desktop/data.txt"
-#test_file="/home/ehab/Desktop/test_data.txt"
-#lemmas=input_data(filename)
-#print(lemmas)
-#print(test_acc(test_file,lemmas))
+  #######------test--------------##  
+filename= "./data.txt"
+test_file="./test_data.txt"
+lemmas=input_data(filename)
+print(lemmas)
+print(test_acc(test_file,lemmas))
 
