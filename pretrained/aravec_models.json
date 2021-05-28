@@ -1,0 +1,10 @@
+{
+"Twitter_CBOW_300":"https://bakrianoo.ewr1.vultrobjects.com/aravec/full_grams_cbow_300_twitter.zip",
+"Twitter_CBOW_100":"https://bakrianoo.ewr1.vultrobjects.com/aravec/full_grams_cbow_100_twitter.zip",
+"Twitter_SkipGram_300":"https://bakrianoo.ewr1.vultrobjects.com/aravec/full_grams_sg_300_twitter.zip",
+"Twitter_SkipGram_100":"https://bakrianoo.ewr1.vultrobjects.com/aravec/full_grams_sg_100_twitter.zip",
+"Wikipedia_CBOW_300":"https://bakrianoo.ewr1.vultrobjects.com/aravec/full_grams_cbow_300_wiki.zip",
+"Wikipedia_CBOW_100":"https://bakrianoo.ewr1.vultrobjects.com/aravec/full_grams_cbow_100_wiki.zip",
+"Wikipedia_SkipGram_300":"https://bakrianoo.ewr1.vultrobjects.com/aravec/full_grams_sg_300_wiki.zip",
+"Wikipedia_SkipGram_100":"https://bakrianoo.ewr1.vultrobjects.com/aravec/full_grams_sg_100_wiki.zip"
+}
