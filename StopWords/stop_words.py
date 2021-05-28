@@ -26,6 +26,23 @@ def remove_stopwords(text,sw_src='STOPWORDS'):
         if token not in sw_set:
             result_list.append(token)
     return result_list
+    
+def show_stop_word_list(sw_src='STOPWORDS'):
+    if sw_src.lower() == 'stopwords':
+        return list(STOPWORDS.keys())
+    elif sw_src.lower() == 'ar_stopwords':
+        return list(ar_stopwords)
+    else:
+        return 'Invalid stop word source'
+        
+        
+def is_stop_word(word,sw_src='STOPWORDS'):
+    if sw_src.lower() == 'stopwords':
+        return word in list(STOPWORDS.keys())
+    elif sw_src.lower() == 'ar_stopwords':
+        return word in list(ar_stopwords)
+    else:
+        return 'Invalid stop word source'
 
 ## IN PROGRESS
 def add_stopword(word,to='STOPWORDS'):
