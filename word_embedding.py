@@ -21,8 +21,8 @@ class WordEmbedding:
         self.maxlen = maxlen
         self.embedding_vector = embedding_vector
 
-    def tokenize(self, text):
-        tokens, maxlen = self.tokenizer(text)
+    def tokenize(self, text, stop_words=['and', 'a', 'is', 'the', 'in', 'be', 'will']):
+        tokens, maxlen = self.tokenizer(text, stop_words)
         return tokens
 
     def encode(self, text):
