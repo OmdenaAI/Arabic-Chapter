@@ -1,24 +1,12 @@
 # Models: 
 
-- Linear SVM
-- Logistic regression
+1- QRIB model
+- fine-tunned for 3 epochs, each epoch took  around 1 hour on COLAB
+- F1- Score: 0.858 
 
-# Features:
-features used is union of 
-- TF-IDF ngram 1 word level
-- TF-IDF ngram 2 word level
-- TF-IDF ngram 3 word level
-- TF-IDF ngram 5 word level
-- TF-IDF ngram 7 word level
-- TF-IDF ngram 1 char level
-- TF-IDF ngram 2 char level
-- TF-IDF ngram 3 char level
-- TF-IDF ngram 5 char level
-- TF-IDF ngram 7 char level
-- CountVector ngram 3
-- CountVector ngram 5
 
 # Accuracy
-![Alt text](images/SVM_results.png?raw=true "SVM")
-![Alt text](images/LR_results.png?raw=true "LR")
+![Alt text](images/QARIB_results.png?raw=true "QARiB model")
+
+
 
