@@ -17,6 +17,7 @@ More information can be found in this link
 |-------------------------------------------------------------|----------|----------|--------|----------|
 | QARiB                                                       | 0.84     | 0.85     | 0.84   | 0.859    |
 | MARBERT                                                     | 0.84     | 0.85     | 0.83   | 0.86     |
+| AraBERT                                                     | 0.825    | 0.83     | -      | 0.856    |
 | Linear SVM + TF-IDF word and character level + CountVector  | 0.71     | 0.71     | 0.72   | 0.739    |
 | LR+ TF-IDF word and character level + CountVector           | 0.67     | 0.66     | 0.69   | 0.692    |
 
