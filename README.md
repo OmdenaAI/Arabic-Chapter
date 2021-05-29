@@ -7,20 +7,18 @@ More information can be found in this link
 [link](https://docs.google.com/spreadsheets/d/17MT_OPUmjSKF323rFNM3pxUBAuES6Mu9Zzpd8V06c34/edit#gid=0)
 
 # Metrics
-- F1-Score
-- Percsion
-- Recall
+- F1-Score macro avg
+- Percsion macro avg 
+- Recall   macro avg
 - Accuracy
 
 # Results
 | Model                                                       | F1-Macro | Percsion | Recall | Accuracy |
 |-------------------------------------------------------------|----------|----------|--------|----------|
 | QARiB                                                       | 0.84     | 0.85     | 0.84   | 0.859    |
+| MARBERT                                                     | 0.84     | 0.85     | 0.83   | 0.86     |
 | Linear SVM + TF-IDF word and character level + CountVector  | 0.71     | 0.71     | 0.72   | 0.739    |
 | LR+ TF-IDF word and character level + CountVector           | 0.67     | 0.66     | 0.69   | 0.692    |
-
-
-
 
 
 
