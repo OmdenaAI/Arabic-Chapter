@@ -1,4 +1,5 @@
 from word_embedding import WordEmbedding
+
 from utils import helper, preprocess
 
 import numpy as np
