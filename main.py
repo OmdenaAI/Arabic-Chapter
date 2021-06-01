@@ -2,39 +2,46 @@ from word_embedding import WordEmbedding
 
 from utils import helper, preprocess
 
+import pandas as pd
 import numpy as np
+import json
 
 """
 Yet to do:
-    Save embeddings
-    Plotting
-    dataset without labels, only huge text
-    using pretrained word2vec, glove
+    expand context
+    using pretrained glove
 """
 
 if __name__ == '__main__':
 
-    text = ["Hello, king! How are your soldiers.",
-            "Queen is alright!",
-            "Your kingdom is gonna fall",
-            "The King is no more."]
-    label = [1, 1, 0, 0]
+    data = pd.read_csv("./data/training.1600000.processed.noemoticon.csv", nrows=1000)
+    text = list(data.iloc[:,5])
+    label = list(data.iloc[:,0])
 
-    embeddings = WordEmbedding(preprocess.tokenization, vocab_size=30, maxlen=10, embedding_vector=5, method="keras")
 
-    text = embeddings.tokenize(text)
-    print(text)
-
-    text = embeddings.encode(text)
-    print(text)
-
+    #Keras Neural net features
+    embeddings = WordEmbedding(preprocess.tokenizer, vocab_size=13000, maxlen=150, embedding_vector=10, method="keras")
+    text = embeddings.tokenize(text, stop_words=['and', 'a', 'is', 'the', 'in', 'be', 'will'])
+    text, unique_words, word_dict = embeddings.encode(text)
     text, label = np.array(text), np.array(label)
+    # model = embeddings.train_keras(text, label, epochs=50)
 
-    model = embeddings.train(text, label, epochs=5)
+    # word_embeddings = model.get_layer("embedding").get_weights()[0]
 
-    word_embeddings = model.get_layer("embedding").get_weights()[0]
+    # embeddings = helper.get_embeddings(unique_words, word_dict, word_embeddings)
+    # helper.plot(word_dict, embeddings) 
+    # helper.save_embeddings(embeddings)
 
-    print(word_embeddings[12])
 
-    
 
+    # Word2vec
+    # embeddings = WordEmbedding(preprocess.tokenizer, vocab_size=13000, maxlen=150, embedding_vector=10, method="word2vec")
+    # text = embeddings.tokenize(text)
+    # words, label, unique_words, word_dict = embeddings.encode_w2v(text)
+    # model = embeddings.train_w2v(words, label, epochs=50)
+
+    # word_embeddings = model.get_weights()[0]
+
+    # embeddings = helper.get_embeddings(unique_words, word_dict, word_embeddings)
+    # helper.plot(word_dict, embeddings)
+    # helper.save_embeddings(embeddings) 

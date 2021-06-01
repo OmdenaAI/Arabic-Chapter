@@ -1,75 +1,32 @@
-#Inherited from Ahmed Salah
-class Sentencizer:
-    """"
-    Class for splitting paragraphs to sentences
-    """
+import re
 
-    def __init__(self, _text, split_chars=['.', '?', '؟', '!', ':']):
-        self.sentences = []
-        self.text = str(_text)
-        self._split_chars = split_chars
-        self._sentencize()
+def tokenizer(
+    texts:list,
+    punctuations = """'!"#$%&'()*+,«».؛،/:؟?@[\]^_`{|}~""",
+    stop_words=['and', 'a', 'is', 'the', 'in', 'be', 'will']
+    )->list:
 
-    def _sentencize(self):
+    list_ = []
+    maxlen = 0
+    for i in range(len(texts)):
+        maxlen = len(texts[i]) if len(texts[i]) > maxlen else maxlen
+        for x in texts[i].lower(): 
+            if x in punctuations: 
+                texts[i] = texts[i].replace(x, "")
 
-        """"
-        Split sentences according to the split chars we have
-        and also handle some special cases for them
-        """
-        fullStopIndex = findOccurrences(self.text, '.')  # get the indices of all occurrences of (.) to check
-        text = self.text
-        text = fullStopCheck(text, fullStopIndex)
-        for character in self._split_chars:
-            text = text.replace(character, character + "</>")
-        text = text.replace('<D>', '.')
-        self.sentences = [x.strip() for x in text.split("</>") if x != '']
+        texts[i] = re.sub(r'\w*\d\w*', '', texts[i])
 
-class tokenization:
-    """"
-    CLass to create tokens from sentences
-    """
-    def __init__(self, sentences, split_tokens=[' ', '-']):
+        texts[i] = re.sub(r'[0-9]+', '', texts[i])
 
-        self.tokens = []
-        self.sentences = Sentencizer(sentences).sentences
-        self._split_tokens = split_tokens
-        self._punctuations = """'!"#$%&'()*+,«».؛،/:؟?@[\]^_`{|}~"""
-        self._tokenize()
+        texts[i] = re.sub(r'\s+', ' ', texts[i]).strip()
 
-    def _tokenize(self):
-        """"
-         return tokens from the given sentences
-        """
-        for text in self.sentences:
+        texts[i] = texts[i].lower()
 
-            for punctuation in self._punctuations:      # Search for the punctuations inside the sentence
-                text = text.replace(punctuation, " " + punctuation + " ")
+        texts[i] = texts[i].split(' ')
 
-            for delimiter in self._split_tokens:
-                text = text.replace(delimiter, '</>')
+        texts[i] = [x for x in texts[i] if x!='']
 
-            token = [x.strip() for x in text.split('</>') if x != '']
-            token = [x for x in token if x not in self._punctuations]
-            self.tokens.append(list(set(token)))
+        texts[i] = [x for x in texts[i] if x not in stop_words]
+        list_.append(texts[i])
 
-
-def findOccurrences(s, ch):
-
-    """"
-     Finds all occurrences of a char and returns all indices
-    """
-    return [i for i, letter in enumerate(s) if letter == ch]
-
-
-def fullStopCheck(text, indices):
-    """"
-    Check for all the cases were the full stop doesn't mean the end of the sentence
-    example : (ق.م), (أ.د.سعيد), (د.توفيق)
-    """
-    for index in indices:
-        if text[index - 2] == ' ' or index - 1 == 0 or text[index - 2] == '.':
-            if text[index - 1] == '.': text = text[0:index] + text[index + 1:]
-            else:
-              text = text[0:index] + '<D>' + text[index + 1:]
-
-    return text
+    return list_, maxlen
