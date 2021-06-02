@@ -3,23 +3,31 @@ import json
 import os
 import urllib.request
 
-#TODO: Add ability to list and download models, 
 class aravec:
     def __init__(self):
         with open("pretrained/aravec_models.json", "r") as f:
             self.models = json.loads(f.read())
+
+
     def list_models(self):
+        """
+        Lists all AraVec models
+        """
         return self.models.keys()
+
+
     def get_model(self, model_name):
-        if model_name not in self.models.keys():
-            print("ERROR: Model not in list of available models. Try list_models()")
-            return
+        #TODO: raise error if model_name isn't in list of available models
         link = self.models[model_name]
         filename =  link.split('/')[-1]
+        #TODO: add option to unzip model file after downloading
         urllib.request.urlretrieve (link, filename)
-        return self.load_model(filename)
+        print("Downloaded model ", filename)
+        return
         
+
     def load_model(self, model_path):
+        #TODO raise error if model_path doesn't end with .mdl
         model = gensim.models.Word2Vec.load(model_path)
         return model
 
