@@ -14,23 +14,28 @@ Yet to do:
 
 if __name__ == '__main__':
 
-    data = pd.read_csv("./data/training.1600000.processed.noemoticon.csv", nrows=1000)
-    text = list(data.iloc[:,5])
-    label = list(data.iloc[:,0])
+    data = pd.read_csv("data/AJGT.xlsx")
+    text = list(data.Feed)
+    label = list(data.Sentiment)
 
 
     #Keras Neural net features
     embeddings = WordEmbedding(preprocess.tokenizer, vocab_size=13000, maxlen=150, embedding_vector=10, method="keras")
-    text = embeddings.tokenize(text, stop_words=['and', 'a', 'is', 'the', 'in', 'be', 'will'])
+    text = embeddings.tokenize(text, stop_words=[' ', '0', '1', '2', '3', '4', '5', '6',
+                                                '7', '8', '9', '?', 
+                                                '؟', 'ء', 'ؤ', 'ئ', 'ا', 'ب', 'ت', 'ث',
+                                                'ج', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ',
+                                                'ع', 'غ', 'ف', 'ق', 'ك', 'ل', 'م', 'ن', 'ه', 'و', 'ي', '٠', '١',
+                                                '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'])
     text, unique_words, word_dict = embeddings.encode(text)
     text, label = np.array(text), np.array(label)
-    # model = embeddings.train_keras(text, label, epochs=50)
+    model = embeddings.train_keras(text, label, epochs=50)
 
-    # word_embeddings = model.get_layer("embedding").get_weights()[0]
+    word_embeddings = model.get_layer("embedding").get_weights()[0]
 
-    # embeddings = helper.get_embeddings(unique_words, word_dict, word_embeddings)
-    # helper.plot(word_dict, embeddings) 
-    # helper.save_embeddings(embeddings)
+    embeddings = helper.get_embeddings(unique_words, word_dict, word_embeddings)
+    helper.plot(word_dict, embeddings) 
+    helper.save_embeddings(embeddings)
 
 
 
