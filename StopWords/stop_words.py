@@ -2,53 +2,98 @@ from data.ar_stopwords import ar_stopwords
 from data.stopwordsallforms import STOPWORDS
 
 
-def remove_stopwords(text,sw_src='STOPWORDS'):
-    """
-    This function takes in a string and returns a list of words that are not stopwords
-    
-    INPUT:
-    text: String that you want to remove stopwords from.
-    sw_src: stands for stopword source (default = STOPWORDS)
-    
-    OUTPUT:
-    list of tokens free of stopwords
-    """
+class stopwords:
 
-    if sw_src.lower() == 'stopwords':
-        sw_set = set(STOPWORDS.keys())
-    elif sw_src.lower() == 'ar_stopwords':
-        sw_set = ar_stopwords
-    else:
-        return 'Invalid stop word source'
-    
-    result_list = []
-    for token in text.split():
-        if token not in sw_set:
-            result_list.append(token)
-    return result_list
-    
-def show_stop_word_list(sw_src='STOPWORDS'):
-    if sw_src.lower() == 'stopwords':
-        return list(STOPWORDS.keys())
-    elif sw_src.lower() == 'ar_stopwords':
-        return list(ar_stopwords)
-    else:
-        return 'Invalid stop word source'
-        
-        
-def is_stop_word(word,sw_src='STOPWORDS'):
-    if sw_src.lower() == 'stopwords':
-        return word in list(STOPWORDS.keys())
-    elif sw_src.lower() == 'ar_stopwords':
-        return word in list(ar_stopwords)
-    else:
-        return 'Invalid stop word source'
+    stopwords_long = list(STOPWORDS.keys())
+    stopwords_short = list(ar_stopwords)
 
-## IN PROGRESS
-def add_stopword(word,to='STOPWORDS'):
-    if to.lower() == 'stopwords':
-        STOPWORDS[word]=""
-    elif to.lower() == 'ar_stopwords':
-        ar_stopwords.add(word)
-    else:
-        return 'Invalid stop word destination'
+    def remove_stopwords(text,sw_src='stopwords_long'):
+    
+        """
+        This function takes in a string and returns a list of words that are not stopwords.
+        
+        INPUT:
+        text: String that you want to remove stopwords from.
+        sw_src: stands for stopword source (default = stopwords_long)
+        possible values for sw_src = {'stopwords_long','stopwords_short'}
+        
+        OUTPUT:
+        list of tokens free of stopwords
+        """
+
+        if sw_src.lower() == 'stopwords_long':
+            sw_set = stopwords.stopwords_long
+        elif sw_src.lower() == 'stopwords_short':
+            sw_set = stopwords.stopwords_short
+        else:
+            return 'Invalid stop word source'
+        
+        result_list = []
+        for token in text.split():
+            if token not in sw_set:
+                result_list.append(token)
+        return result_list
+        
+    def show_stop_word_list(sw_src='stopwords_long'):
+    
+        """
+        This function takes in a stopword source and returns available list of stopwords.
+        
+        INPUT:
+        sw_src: stands for stopword source (default = stopwords_long)
+        possible values for sw_src = {'stopwords_long','stopwords_short'}
+        
+        OUTPUT:
+        list of stopwords from selected source
+        """
+    
+        if sw_src.lower() == 'stopwords_long':
+            return stopwords.stopwords_long
+        elif sw_src.lower() == 'stopwords_short':
+            return stopwords.stopwords_short
+        else:
+            return 'Invalid stop word source'
+            
+            
+    def is_stop_word(word,sw_src='stopwords_long'):
+    
+        """
+        This function takes in a string and returns whether it is a stopword or not
+        
+        INPUT:
+        word: String that you want to test.
+        sw_src: stands for stopword source (default = stopwords_long)
+        possible values for sw_src = {'stopwords_long','stopwords_short'}
+        
+        OUTPUT:
+        True if stop word , False otherwise
+        """
+    
+        if sw_src.lower() == 'stopwords_long':
+            return word in stopwords.stopwords_long
+        elif sw_src.lower() == 'stopwords_short':
+            return word in stopwords.stopwords_short
+        else:
+            return 'Invalid stop word source'
+
+
+    def add_stopword(word,to='stopwords_long'):
+    
+        """
+        This function takes in a string and adds it to selected stopword destination.
+        
+        INPUT:
+        word: String that you want to remove stopwords from.
+        to: stands for stopword destination (default = stopwords_long)
+        possible values for to = {'stopwords_long','stopwords_short'}
+        
+        OUTPUT:
+        None
+        """
+    
+        if to.lower() == 'stopwords_long':
+            stopwords.stopwords_long.append(word)
+        elif to.lower() == 'stopwords_short':
+            stopwords.stopwords_short.append(word)
+        else:
+            return 'Invalid stop word destination'

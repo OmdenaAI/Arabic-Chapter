@@ -4,7 +4,7 @@
 import os, sys
 from data.ar_stopwords import ar_stopwords
 from data.stopwordsallforms import STOPWORDS
-from stop_words import remove_stopwords, add_stopword
+from stop_words import stopwords
 
 text = u"تعدّ كتابة المقالات الأكاديمية واحدة من أهمّ عناصر النجاح خلال المرحلة الدراسية، الثانوية أو الجامعية على حدّ السواء. ويواجه الكثير من الطلاب الذين يفتقرون إلى موهبة الكتابة، صعوبة في إعداد المقالات الأكاديمية وتجهيزها. لكن، ما لا يعرفه هؤلاء الطلاب، هو أن المقال الأكاديمي، يختلف اختلافًا كبيرًا عن الكتابة الإبداعية، حيث أنّه مبني على قواعد محدّدة إن تعلّمتها والتزمت بها أمكنك كتابة مقال أكاديمي احترافي وناجح تصفح على موقع فرصة"
 
@@ -44,21 +44,22 @@ print()
 
 
 print('Result from running general remove function')
-print(remove_stopwords(text, sw_src = "stopwords"))
-print(len(remove_stopwords(text, sw_src = "ar_stopwords")))
+print(stopwords.remove_stopwords(text, sw_src = "stopwords_long"))
+print(len(stopwords.remove_stopwords(text, sw_src = "stopwords_short")))
 print("-"*40)
 print()
 print()
 
 print("testing adding new stopword")
 new_stopword = 'فرصة'
-print(new_stopword in STOPWORDS)    #False
-print(new_stopword in ar_stopwords) #False
+print(stopwords.is_stop_word(new_stopword,sw_src = 'stopwords_long'))   #False
+print(stopwords.is_stop_word(new_stopword,sw_src = 'stopwords_long'))   #False
 
-add_stopword(new_stopword)
-print(new_stopword in STOPWORDS)     #True
-print(new_stopword in ar_stopwords)  #False
+stopwords.add_stopword(new_stopword,to='stopwords_long')
+print(stopwords.is_stop_word(new_stopword,sw_src = 'stopwords_long'))   #True
+print(stopwords.is_stop_word(new_stopword,sw_src = 'stopwords_short'))  #False
 
-add_stopword(new_stopword, to = "ar_stopwords")
-print(new_stopword in STOPWORDS)     #True
-print(new_stopword in ar_stopwords)  #True
+
+stopwords.add_stopword(new_stopword,to='stopwords_short')
+print(stopwords.is_stop_word(new_stopword,sw_src = 'stopwords_long')) #True
+print(stopwords.is_stop_word(new_stopword,sw_src = 'stopwords_short')) #True
