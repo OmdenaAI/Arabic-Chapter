@@ -60,7 +60,6 @@ def w2v(texts):
 
     for text in texts:
         all_text += text 
-
         for i, word in enumerate(text):
             for w in range(window):
                 if i + 1 + w < len(text): 
@@ -106,11 +105,17 @@ def get_model(X, y, vocab_size, embedding_size, maxlen, method="keras"):
         #model.add(LSTM(128,return_sequences=True,dropout=0.2))
         #model.add(GlobalMaxPooling1D())
         model.add(Flatten())
-        model.add(Dense(1, activation='sigmoid'))
+        model.add(Dense(2, activation='softmax'))
     
     elif method == "word2vec":
         inp = Input(shape=(X.shape[1],))
         x = Dense(units=embedding_size, activation='relu')(inp)
+        x = Dropout(0.2)(x)
+        x = Dense(64, activation='relu')(x)
+        x = Dropout(0.2)(x)
+        x = Dense(128, activation='relu')(x)
+        x = Dense(64, activation='relu')(x)
+        x = Dropout(0.2)(x)
         x = Dense(units=y.shape[1], activation='softmax')(x)
         model = Model(inputs=inp, outputs=x)
     
@@ -130,16 +135,18 @@ def get_embeddings(unique_words, word_dict, word_embeddings):
             })
     return embeddings
 
-def plot(word_dict, embeddings):
+def plot(word_dict, embeddings, name):
     plt.figure(figsize=(10, 10))
-    for word in list(word_dict.keys()):
+    for i, word in enumerate(list(word_dict.keys())):
         coord = embeddings.get(word)
         plt.scatter(coord[0], coord[1])
         plt.annotate(word, (coord[0], coord[1]))
-    plt.show()
+        if(i==30):
+            break
+    plt.savefig(f"models/{name}.png")
 
-def save_embeddings(embeddings):
+def save_embeddings(embeddings, name):
     embeddings = convert(embeddings)
-    emb = open("models/embeddings.json", mode='w')
+    emb = open(f"models/{name}.json", mode='w')
     json.dump(convert(embeddings), emb, sort_keys=True)
     emb.close()
