@@ -13,7 +13,7 @@ import qalsadi.lemmatizer
 #this function is to get output lemmatizer 
 def input_data(filename):
     #open the file
-    file=open(filename)
+    file=open(filename,encoding="utf-8")
     text=file.read()
     
     lemmer=qalsadi.lemmatizer.Lemmatizer()
@@ -25,7 +25,7 @@ def input_data(filename):
 def test_acc(test_file,lemmas):
     #file=open(test_file)
     test=[]
-    with open(test_file,'r') as file:
+    with open(test_file,'r',encoding="utf-8") as file:
         test=[current_place.rstrip() for current_place in file.readlines()]
         
     reference=lemmas  
@@ -37,6 +37,8 @@ def test_acc(test_file,lemmas):
 filename= "./data.txt"
 test_file="./test_data.txt"
 lemmas=input_data(filename)
-print(lemmas)
-print(test_acc(test_file,lemmas))
+with open('results.txt','w+',encoding="utf-8") as f:
+    for i in lemmas:
+        f.write(i+"\n")
+    f.write(str(test_acc(test_file,lemmas)))
 
