@@ -27,10 +27,12 @@ class tokenization:
     """"
     CLass to create tokens from sentences
     """
-    def __init__(self, sentences, split_tokens=[' ', '-']):
+    def __init__(self, text, split_tokens=[' ', '-']):
 
         self.tokens = []
-        self.sentences = Sentencizer(sentences).sentences
+        # Separate text into paragraphs at first
+        self.paragraphs = ' '.join([prop_paragraph for prop_paragraph in text.split('\n') if len(prop_paragraph)>1])
+        self.sentences = Sentencizer(self.paragraphs).sentences
         self._split_tokens = split_tokens
         self._punctuations = """'!"#$%&'()*+,«».؛،/:؟?@[\]^_`{|}~”“"""
         self._tokenize()
@@ -47,7 +49,7 @@ class tokenization:
             for delimiter in self._split_tokens:
                 text = text.replace(delimiter, '</>')
 
-            token = [x.strip() for x in text.split('</>') if x != '']
+            token = [x.strip() for x in text.split('</>') if x != '' and (x not in self._punctuations)]
             self.tokens.append(token)
 
 
