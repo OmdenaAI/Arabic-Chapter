@@ -5,7 +5,7 @@ import urllib.request
 import numpy as np
 import zipfile
 
-class aravec:
+class AraVec:
     def __init__(self):
         with open("pretrained/aravec_models.json", "r") as f:
             self.models = json.loads(f.read())
@@ -47,7 +47,7 @@ class aravec:
     def get_embedding_matrix(self, model):
 
         embeddings_index = {}
-        for word,vector in zip(model.wv.vocab,model.wv.vectors):
+        for word,vector in zip(model.wv.index_to_key,model.wv.vectors):
             coefs = np.asarray(vector, dtype='float32')
             embeddings_index[word] = coefs
         return embeddings_index
