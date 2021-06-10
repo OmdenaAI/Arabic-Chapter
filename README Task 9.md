@@ -10,6 +10,9 @@ File contains Datasets and Model
 
 > Model
 1. RNN
-
+2. LSTM
+3. GRU
+4. BI-LSTM
+5. BI-LSTM (modified)
 
             
