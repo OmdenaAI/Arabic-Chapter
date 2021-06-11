@@ -27,10 +27,12 @@ class tokenization:
     """"
     CLass to create tokens from sentences
     """
-    def __init__(self, sentences, split_tokens=[' ', '-']):
+    def __init__(self, text, split_tokens=[' ', '-']):
 
         self.tokens = []
-        self.sentences = Sentencizer(sentences).sentences
+        # Separate text into paragraphs at first
+        self.paragraphs = ' '.join([prop_paragraph for prop_paragraph in text.split('\n') if len(prop_paragraph)>1])
+        self.sentences = Sentencizer(self.paragraphs).sentences
         self._split_tokens = split_tokens
         self._punctuations = """'!"#$%&'()*+,«».؛،/:؟?@[\]^_`{|}~”“"""
         self._tokenize()
@@ -47,7 +49,7 @@ class tokenization:
             for delimiter in self._split_tokens:
                 text = text.replace(delimiter, '</>')
 
-            token = [x.strip() for x in text.split('</>') if x != '']
+            token = [x.strip() for x in text.split('</>') if x != '' and (x not in self._punctuations)]
             self.tokens.append(token)
 
 
@@ -65,9 +67,10 @@ def fullStopCheck(text, indices):
     example : (ق.م), (أ.د.سعيد), (د.توفيق)
     """
     for index in indices:
-        if text[index - 2] == ' ' or index - 1 == 0 or text[index - 2] == '.':
-            if text[index - 1] == '.': text = text[0:index] + text[index + 1:]
-            else:
-              text = text[0:index] + '<D>' + text[index + 1:]
+        if text[index - 1] == '.':  # replace multiple dots (....) with single dot (.)
+            text = text[0:index] + text[index + 1:]
+
+        elif text[index - 2] == ' ' or index - 1 == 0 or text[index - 2] == '.': # mark all special fullstops 
+            text = text[0:index] + '<D>' + text[index + 1:]
 
     return text
