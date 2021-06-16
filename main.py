@@ -1,6 +1,6 @@
 import os
 
-from word_embedding import WordEmbedding
+from models.Word2Vec import Word2Vec
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
 import json
@@ -24,7 +24,7 @@ if __name__ == '__main__':
 
 
     # #Keras Neural net features
-    # embeddings = WordEmbedding(preprocess.tokenizer, vocab_size=10000, maxlen=80, embedding_vector=10, method="keras")
+    # embeddings = Word2Vec(preprocess.tokenizer, vocab_size=10000, maxlen=80, embedding_vector=10, method="keras")
     # text = embeddings.tokenize(text, stop_words=[' ', '0', '1', '2', '3', '4', '5', '6',
     #                                             '7', '8', '9', '?', 
     #                                             '؟', 'ء', 'ؤ', 'ئ', 'ا', 'ب', 'ت', 'ث',
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     label = list(data.Sentiment)
 
     # Word2vec
-    embeddings = WordEmbedding(preprocess.tokenizer, vocab_size=10000, maxlen=80, embedding_vector=5, method="word2vec")
+    embeddings = Word2Vec(preprocess.tokenizer, vocab_size=10000, maxlen=80, embedding_vector=5, method="word2vec")
     text = embeddings.tokenize(text, stop_words=[' ', '0', '1', '2', '3', '4', '5', '6',
                                                 '7', '8', '9', '?', 
                                                 '؟', 'ء', 'ؤ', 'ئ', 'ا', 'ب', 'ت', 'ث',
