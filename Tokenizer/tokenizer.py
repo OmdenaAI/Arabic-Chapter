@@ -66,11 +66,14 @@ def fullStopCheck(text, indices):
     Check for all the cases where the full stop doesn't mean the end of the sentence
     example : (ق.م), (أ.د.سعيد), (٩.٢٩ مليون)
     """
+    if 1 in indices and len(text) > 2:
+        text = text[0:1] + '§' + text[2:]
+        indices.remove(1)
+
     for i in indices:
-
-        if (text[i - 1].isnumeric() and text[i + 1].isnumeric() or
-                text[i - 2] == ' ' or i - 1 == 0 or text[i - 2] == '.'):
-
-            text = text[0:i] + '§' + text[i + 1:]
+        if i < len(text) - 1:
+            if (text[i - 1].isnumeric() and text[i + 1].isnumeric() or
+                    text[i - 2] == ' ' or text[i - 2] == '.'):
+                text = text[0:i] + '§' + text[i + 1:]
 
     return text
