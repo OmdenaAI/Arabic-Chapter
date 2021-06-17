@@ -10,7 +10,6 @@ class Sentencizer:
         self._sentencize()
 
     def _sentencize(self):
-
         """"
         Split sentences according to the split chars we have
         and also handle some special cases for them
@@ -20,18 +19,20 @@ class Sentencizer:
         text = fullStopCheck(text, fullStopIndex)
         for character in self._split_chars:
             text = text.replace(character, character + "</>")
-        text = text.replace('<D>', '.')
+        text = text.replace('§', '.')
         self.sentences = [x.strip() for x in text.split("</>") if x != '']
+
 
 class tokenization:
     """"
     CLass to create tokens from sentences
     """
+
     def __init__(self, text, split_tokens=[' ', '-']):
 
         self.tokens = []
         # Separate text into paragraphs at first
-        self.paragraphs = ' '.join([prop_paragraph for prop_paragraph in text.split('\n') if len(prop_paragraph)>1])
+        self.paragraphs = ' '.join([prop_paragraph for prop_paragraph in text.split('\n') if len(prop_paragraph) > 1])
         self.sentences = Sentencizer(self.paragraphs).sentences
         self._split_tokens = split_tokens
         self._punctuations = """'!"#$%&'()*+,«».؛،/:؟?@[\]^_`{|}~”“"""
@@ -43,7 +44,7 @@ class tokenization:
         """
         for text in self.sentences:
 
-            for punctuation in self._punctuations:      # Search for the punctuations inside the sentence
+            for punctuation in self._punctuations:  # Search for the punctuations inside the sentence
                 text = text.replace(punctuation, " " + punctuation + " ")
 
             for delimiter in self._split_tokens:
@@ -54,7 +55,6 @@ class tokenization:
 
 
 def findOccurrences(s, ch):
-
     """"
      Finds all occurrences of a char and returns all indices
     """
@@ -63,14 +63,14 @@ def findOccurrences(s, ch):
 
 def fullStopCheck(text, indices):
     """"
-    Check for all the cases were the full stop doesn't mean the end of the sentence
-    example : (ق.م), (أ.د.سعيد), (د.توفيق)
+    Check for all the cases where the full stop doesn't mean the end of the sentence
+    example : (ق.م), (أ.د.سعيد), (٩.٢٩ مليون)
     """
-    for index in indices:
-        if text[index - 1] == '.':  # replace multiple dots (....) with single dot (.)
-            text = text[0:index] + text[index + 1:]
+    for i in indices:
 
-        elif text[index - 2] == ' ' or index - 1 == 0 or text[index - 2] == '.': # mark all special fullstops 
-            text = text[0:index] + '<D>' + text[index + 1:]
+        if (text[i - 1].isnumeric() and text[i + 1].isnumeric() or
+                text[i - 2] == ' ' or i - 1 == 0 or text[i - 2] == '.'):
+
+            text = text[0:i] + '§' + text[i + 1:]
 
     return text
