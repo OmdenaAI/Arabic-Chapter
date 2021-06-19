@@ -179,7 +179,7 @@ def plot(word_dict, embeddings, name):
     plt.savefig(f"models/{name}.png")
 
 def save_embeddings(embeddings, name):
-    sample = embedding.copy()
+    sample = embeddings.copy()
     emb = open(f"models/{name}.json", mode='w')
     json.dump(convert(sample), emb, sort_keys=True)
     emb.close()
