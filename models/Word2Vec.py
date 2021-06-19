@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 
 from sklearn import preprocessing, model_selection
 from scipy import sparse
@@ -22,13 +23,18 @@ class Word2Vec:
         self.maxlen = maxlen
         self.embedding_vector = embedding_vector
 
-    def tokenize(self, text, stop_words=['and', 'a', 'is', 'the', 'in', 'be', 'will']):
-        tokens, maxlen = self.tokenizer(text, stop_words)
+    def tokenize(self, text, punctuations=[], stop_words=[]):
+        tokens, maxlen, vocab = self.tokenizer(text, punctuations, stop_words)
+        if self.maxlen == 'auto':
+            self.maxlen = maxlen
+        if self.vocab_size == 'auto':
+            self.vocab_size = vocab
+        # print(vocab, maxlen)
         return tokens
 
     def encode(self, text, label):
         vector, temp, all_ = [], [], []
-        for d in text:
+        for d in tqdm(text, total=len(text)):
             for i in d:
                 temp.extend(one_hot(i, self.vocab_size))
             vector.append(temp)
@@ -46,31 +52,33 @@ class Word2Vec:
 
         model = helper.get_model(trainX, trainY, self.vocab_size, self.embedding_vector, self.maxlen)
         model.compile(optimizer="adam", loss=tf.keras.losses.CategoricalCrossentropy(), metrics=["accuracy"])
-        print(model.summary())
+        # print(model.summary())
 
-        es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience=3)  
+        es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience=4)  
         mc = ModelCheckpoint('models/word_embeddings_NN.h5', monitor='val_loss', mode='min', save_best_only=True,verbose=1)
 
         model.fit(trainX, trainY, validation_data=(validX, validY), epochs=epochs, callbacks=[es, mc], verbose=1)
 
         return model
 
-    def encode_w2v(self, texts):
-        word_lists, all_text = helper.w2v(texts)
+    def encode_w2v(self, texts, window_size=2):
+        word_lists, all_text = helper.w2v2(texts, window_size=window_size)
         word_dict = helper.word_dictionary(all_text)
-        X, Y = helper.encode_w2v(word_lists, word_dict)
-        #print(X, Y)
+        X, Y = helper.encode_w2v2(word_lists, word_dict)
         return X, Y, list(word_dict.keys()), word_dict
 
-    def train_w2v(self, trainX, trainY, validX, validY, epochs=5, validation_split=0.2):
-        model = helper.get_model(trainX, trainY, self.vocab_size, self.embedding_vector, self.maxlen, method=self.method)
-        model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
-        print(model.summary())
+    def train_w2v(self, words, label, epochs=5, validation_split=0.2):
+        trainX, validX, trainY, validY = model_selection.train_test_split(words, label, test_size=validation_split, random_state=42, shuffle=True)
 
-        es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience=3)  
+        model = helper.get_model(np.array(trainX), np.array(trainY), self.vocab_size, self.embedding_vector, self.maxlen, method=self.method)
+        model.compile(optimizer="adam", loss="mean_squared_error", metrics=["accuracy"])
+        # print(model.summary())
+
+        es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience=4)  
         mc = ModelCheckpoint('models/word_embeddings_w2v.h5', monitor='val_loss', mode='min', save_best_only=True,verbose=1)
 
-        model.fit(trainX.toarray(), trainY.toarray(), validation_data=(validX.toarray(), validY.toarray()), epochs=epochs, callbacks=[es, mc], verbose=1)
+        # model.fit(trainX.toarray(), trainY.toarray(), validation_data=(validX.toarray(), validY.toarray()), epochs=epochs, callbacks=[es, mc], verbose=1)
+        model.fit(np.array(trainX), np.array(trainY), validation_data=(np.array(validX), np.array(validY)), epochs=epochs, callbacks=[es, mc], verbose=1)
 
         return model
 

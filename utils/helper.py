@@ -53,8 +53,8 @@ def pretrained_data(vocab_size):
         i+=1
     return embeddings, embedding_matrix
 
-def w2v(texts):
-    window = 2
+def w2v(texts, window_size=1):
+    window = window_size
     word_lists = []
     all_text = []
 
@@ -75,25 +75,55 @@ def encode_w2v(word_lists, word_dict):
     l = len(word_dict)+1
 
     for i, word_list in tqdm(enumerate(word_lists), total=len(word_lists)):
-        # print(i, word_list)
+        print(i, word_list)
 
         main_word_index = word_dict.get(word_list[0])
         context_word_index = word_dict.get(word_list[1])
-        # print(main_word_index, context_word_index)
+        print(main_word_index, context_word_index)
 
         X_row = np.zeros(l)
         Y_row = np.zeros(l)
-        # print(X_row, Y_row)
+        print(X_row, Y_row)
 
         X_row[main_word_index] = 1
         Y_row[context_word_index] = 1
-        # print(X_row, Y_row)
+        print(X_row, Y_row)
 
         X.append(X_row)
         Y.append(Y_row)
-        # print(X, Y)
+        print(X, Y)
+        break
     X = sparse.csr_matrix(X)
     Y = sparse.csr_matrix(Y)
+    print(X, Y)
+    return X, Y
+
+def w2v2(texts, window_size=1):
+    window = window_size
+    word_lists = []
+    all_text = []
+
+    for text in texts:
+        all_text += text 
+        for i, word in enumerate(text):
+            for w in range(window):
+                if i + 1 + w < len(text) and i - w - 1 >= 0: 
+                    word_lists.append([text[(i - w - 1)]] + [word]+ [text[(i + 1 + w)]])
+    return word_lists, all_text
+
+def encode_w2v2(word_lists, word_dict):
+    X = []
+    Y = []
+    l = len(word_dict)+1
+
+    for i, word_list in tqdm(enumerate(word_lists), total=len(word_lists)):
+        # print(word_list)
+        main_word_index = word_dict.get(word_list[1])
+        context_word_index_before = word_dict.get(word_list[0])
+        context_word_index_after = word_dict.get(word_list[2])
+
+        X.append([context_word_index_before, context_word_index_after])
+        Y.append([main_word_index])
     return X, Y
 
 
@@ -102,21 +132,24 @@ def get_model(X, y, vocab_size, embedding_size, maxlen, method="keras"):
     if method == "keras":
         model = Sequential()
         model.add(Embedding(vocab_size, embedding_size, input_length=maxlen ,name="embedding"))
-        #model.add(LSTM(128,return_sequences=True,dropout=0.2))
+        model.add(LSTM(64,return_sequences=True))
+        model.add(LSTM(64))
         #model.add(GlobalMaxPooling1D())
+        model.add(Dropout(0.2))
         model.add(Flatten())
+        model.add(Dense(64, activation='relu'))
+        model.add(Dropout(0.2))
         model.add(Dense(2, activation='softmax'))
     
     elif method == "word2vec":
         inp = Input(shape=(X.shape[1],))
         x = Dense(units=embedding_size, activation='relu')(inp)
-        x = Dropout(0.2)(x)
+        x = Dropout(0.1)(x)
         x = Dense(64, activation='relu')(x)
-        x = Dropout(0.2)(x)
-        x = Dense(128, activation='relu')(x)
+        x = Dropout(0.1)(x)
         x = Dense(64, activation='relu')(x)
-        x = Dropout(0.2)(x)
-        x = Dense(units=y.shape[1], activation='softmax')(x)
+        x = Dropout(0.1)(x)
+        x = Dense(units=y.shape[1])(x)
         model = Model(inputs=inp, outputs=x)
     
 
