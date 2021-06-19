@@ -29,7 +29,7 @@ if __name__ == '__main__':
     # text = embeddings.tokenize(text, stop_words=config['stop_words'], punctuations=config['punctuations'])
     # text, label, unique_words, word_dict = embeddings.encode(text, label)
     # text, label = np.array(text), np.array(label)
-    # model = embeddings.train_keras(text, label, epochs=config['epochs'], validation_split=0.2)
+    # model = embeddings.train_keras(text, label, epochs=config['epochs'], validation_split=config['test_size'])
 
     # word_embeddings = model.get_layer("embedding").get_weights()[0]
 
