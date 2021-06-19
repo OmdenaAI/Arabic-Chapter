@@ -132,11 +132,11 @@ def get_model(X, y, vocab_size, embedding_size, maxlen, method="keras"):
     if method == "keras":
         model = Sequential()
         model.add(Embedding(vocab_size, embedding_size, input_length=maxlen ,name="embedding"))
-        model.add(LSTM(64,return_sequences=True))
+        model.add(Bidirectional(GRU(64)))
         model.add(Flatten())
         model.add(Dense(64, activation='relu'))
         model.add(Dense(32, activation='relu'))
-        model.add(Dropout(0.2))
+        model.add(Dropout(0.1))
         model.add(Dense(2, activation='softmax'))
     
     elif method == "word2vec":
@@ -158,9 +158,12 @@ def convert(dictionary):
         dictionary[i] = str(dictionary[i])
     return dictionary
 
-def get_embeddings(unique_words, word_dict, word_embeddings):
+def get_embeddings(unique_words, word_dict, word_embeddings, vocab_size):
     embeddings = {}
-    for word in unique_words: 
+    # print(len(unique_words), len(word_dict))
+    for i, word in enumerate(unique_words):
+        if(i >= vocab_size):
+            break
         embeddings.update({
             word: word_embeddings[word_dict.get(word)]
             })
