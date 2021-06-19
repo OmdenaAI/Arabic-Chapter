@@ -19,16 +19,22 @@ Yet to do:
 
 if __name__ == '__main__':
 
-    data = pd.read_csv("data/IMDB Dataset.csv")
+    train_pos = pd.read_csv("data/train_Arabic_tweets_positive_20190413.tsv", sep='\t', names=["label", "tweet"])
+    train_neg = pd.read_csv("data/train_Arabic_tweets_negative_20190413.tsv", sep='\t', names=["label", "tweet"])
+    test_pos = pd.read_csv("data/test_Arabic_tweets_positive_20190413.tsv", sep='\t', names=["label", "tweet"])
+    test_neg = pd.read_csv("data/test_Arabic_tweets_negative_20190413.tsv", sep='\t', names=["label", "tweet"])
+    train = pd.concat([train_pos, train_neg])#.sample(frac=1, random_state=0)
+    test = pd.concat([test_pos, test_neg])
 
-    # text = list(data.review)
-    # label = list(data.sentiment)
+    # text = list(train.tweet)
+    # label = list(train.label)
 
     # #Keras Neural net features
     # embeddings = Word2Vec(preprocess.tokenizer, vocab_size=config['vocab_size'], maxlen=config['maxlen'], embedding_vector=config['embedding_vector'], method=config['method'])
     # text = embeddings.tokenize(text, stop_words=config['stop_words'], punctuations=config['punctuations'])
     # text, label, unique_words, word_dict = embeddings.encode(text, label)
     # text, label = np.array(text), np.array(label)
+
     # model = embeddings.train_keras(text, label, epochs=config['epochs'], validation_split=config['test_size'])
 
     # word_embeddings = model.get_layer("embedding").get_weights()[0]
@@ -38,26 +44,19 @@ if __name__ == '__main__':
     # helper.save_embeddings(embeddings, "embeddings_NN")
 
 
-    text = list(data.review)
-    label = list(data.sentiment)
-    # print(text[0])
-    # print("\n")
+    text = list(train.tweet)
 
     # Word2vec
     embeddings = Word2Vec(preprocess.tokenizer, vocab_size=config['vocab_size'], maxlen=config['maxlen'], embedding_vector=config['embedding_vector'], method=config['method'])
     text = embeddings.tokenize(text, stop_words=config['stop_words'], punctuations=config['punctuations'])
-    # print(text[0])
-    # print("\n")
+
     words, label, unique_words, word_dict = embeddings.encode_w2v(text, window_size=config['window_size'])
-    # # print(words[0:5], label[0:5])
-    model = embeddings.train_w2v(words, label, epochs=config['epochs'], validation_split=0.1)
-    model = tf.keras.models.load_model("models/word_embeddings_w2v.h5")
-    print(model.predict([[word_dict['king'], word_dict['has']]]))
-    print(word_dict["won"])
+    words, label = np.array(words), np.array(label)
 
-    word_embeddings = model.get_weights()[0]
-    print(np.sum(word_embeddings, axis=0))
+    model = embeddings.train_w2v(words, label, epochs=config['epochs'], validation_split=config['test_size'])
 
-    embeddings = helper.get_embeddings(unique_words, word_dict, word_embeddings)
+    word_embeddings = model.get_layer("embedding").get_weights()[0]
+
+    embeddings = helper.get_embeddings(unique_words, word_dict, word_embeddings, len(unique_words))
     helper.plot(word_dict, embeddings, "embeddings_w2v")
     helper.save_embeddings(embeddings, "embeddings_w2v") 

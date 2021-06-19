@@ -140,15 +140,14 @@ def get_model(X, y, vocab_size, embedding_size, maxlen, method="keras"):
         model.add(Dense(2, activation='softmax'))
     
     elif method == "word2vec":
-        inp = Input(shape=(X.shape[1],))
-        x = Dense(units=embedding_size, activation='relu')(inp)
-        x = Dropout(0.1)(x)
-        x = Dense(64, activation='relu')(x)
-        x = Dropout(0.1)(x)
-        x = Dense(64, activation='relu')(x)
-        x = Dropout(0.1)(x)
-        x = Dense(units=y.shape[1])(x)
-        model = Model(inputs=inp, outputs=x)
+        model = Sequential()
+        model.add(Embedding(vocab_size, embedding_size, input_length=maxlen ,name="embedding"))
+        # model.add(Bidirectional(GRU(64)))
+        model.add(Flatten())
+        model.add(Dense(64, activation='relu'))
+        model.add(Dense(32, activation='relu'))
+        model.add(Dropout(0.1))
+        model.add(Dense(vocab_size, activation='softmax'))
     
 
     return model

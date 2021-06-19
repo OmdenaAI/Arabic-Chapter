@@ -68,17 +68,16 @@ class Word2Vec:
         return X, Y, list(word_dict.keys()), word_dict
 
     def train_w2v(self, words, label, epochs=5, validation_split=0.2):
-        trainX, validX, trainY, validY = model_selection.train_test_split(words, label, test_size=validation_split, random_state=42, shuffle=True)
 
-        model = helper.get_model(np.array(trainX), np.array(trainY), self.vocab_size, self.embedding_vector, self.maxlen, method=self.method)
-        model.compile(optimizer="adam", loss="mean_squared_error", metrics=["accuracy"])
+        model = helper.get_model(words, label, self.vocab_size, self.embedding_vector, self.maxlen, method=self.method)
+        model.compile(optimizer="SGD", loss=tf.keras.losses.SparseCategoricalCrossentropy(), metrics=["accuracy"])
         # print(model.summary())
 
         es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience=4)  
         mc = ModelCheckpoint('models/word_embeddings_w2v.h5', monitor='val_loss', mode='min', save_best_only=True,verbose=1)
 
         # model.fit(trainX.toarray(), trainY.toarray(), validation_data=(validX.toarray(), validY.toarray()), epochs=epochs, callbacks=[es, mc], verbose=1)
-        model.fit(np.array(trainX), np.array(trainY), validation_data=(np.array(validX), np.array(validY)), epochs=epochs, callbacks=[es, mc], verbose=1)
+        model.fit(words, label, validation_split=validation_split, epochs=epochs, callbacks=[es, mc], verbose=1)
 
         return model
 
