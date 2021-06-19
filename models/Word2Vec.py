@@ -48,16 +48,16 @@ class Word2Vec:
         label = onehot_encoder.fit_transform(label)
         return vector, label, list(word_dict.keys()), word_dict
 
-    def train_keras(self, trainX, trainY, validX, validY, epochs=5, validation_split=0.2):
+    def train_keras(self, text, label, epochs=5):
 
-        model = helper.get_model(trainX, trainY, self.vocab_size, self.embedding_vector, self.maxlen)
+        model = helper.get_model(text, label, self.vocab_size, self.embedding_vector, self.maxlen)
         model.compile(optimizer="adam", loss=tf.keras.losses.CategoricalCrossentropy(), metrics=["accuracy"])
         # print(model.summary())
 
         es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience=4)  
         mc = ModelCheckpoint('models/word_embeddings_NN.h5', monitor='val_loss', mode='min', save_best_only=True,verbose=1)
 
-        model.fit(trainX, trainY, validation_data=(validX, validY), epochs=epochs, callbacks=[es, mc], verbose=1)
+        model.fit(text, label, validation_split=0.1, epochs=epochs, callbacks=[es, mc], verbose=1)
 
         return model
 
