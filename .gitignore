@@ -141,9 +141,8 @@ cython_debug/
 .vscode/
 data/glove.6B.50d.txt
 data/glove.6B.50d.txt.zip
-data/IMDB Dataset.csv
 data/sentiment.xlsx
 data/training.1600000.processed.noemoticon.csv
 data/training.1600000.processed.noemoticon.csv.zip
 data/Twitter.rar
-
+data/Twitter/
