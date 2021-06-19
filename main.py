@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     # word_embeddings = model.get_layer("embedding").get_weights()[0]
 
-    # embeddings = helper.get_embeddings(unique_words, word_dict, word_embeddings)
+    # embeddings = helper.get_embeddings(unique_words, word_dict, word_embeddings, config['vocab_size'])
     # helper.plot(word_dict, embeddings, "embeddings_NN") 
     # helper.save_embeddings(embeddings, "embeddings_NN")
 

@@ -12,7 +12,7 @@ config = {
     'stop_words':stop_words,
     'punctuations':"""'!"-#$%&'()*+,«».؛،/:؟?@[\]^_`{|}~""",
 
-    'epochs':10,
+    'epochs':50,
     'test_size':0.2,
     'window_size':2,
 
