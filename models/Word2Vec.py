@@ -67,9 +67,9 @@ class Word2Vec:
         X, Y = helper.encode_w2v2(word_lists, word_dict)
         return X, Y, list(word_dict.keys()), word_dict
 
-    def train_w2v(self, words, label, epochs=5, validation_split=0.2):
+    def train_w2v(self, words, label, epochs=5, window_size=2, validation_split=0.2):
 
-        model = helper.get_model(words, label, self.vocab_size, self.embedding_vector, self.maxlen, method=self.method)
+        model = helper.get_model(words, label, self.vocab_size, self.embedding_vector, window_size, method=self.method)
         model.compile(optimizer="SGD", loss=tf.keras.losses.SparseCategoricalCrossentropy(), metrics=["accuracy"])
         # print(model.summary())
 

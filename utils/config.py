@@ -4,11 +4,11 @@ with open("data/stopWords.pkl", 'rb') as f:
     stop_words = list(set(stop_words + ['و','في','من','بواسطة','أ','هو','و','في','سيكون','إلى','كان','كن','هو','ال','و','ما','ء','ه','س']))
 
 config = {
-    'vocab_size':'auto',# use 'auto' for w2v
-    'maxlen':2,
+    'vocab_size':80000,# use 'auto' for w2v
+    'maxlen':256,# use 2 for w2v
     'embedding_vector':50,
 
-    'method':'word2vec',#keras
+    'method':'keras',#word2vec
     'stop_words':stop_words,
     'punctuations':"""'!"-#$%&'()*+,«».؛،/:؟?@[\]^_`{|}~""",
 
