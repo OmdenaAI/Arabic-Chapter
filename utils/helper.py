@@ -174,12 +174,12 @@ def plot(word_dict, embeddings, name):
         coord = embeddings.get(word)
         plt.scatter(coord[0], coord[1])
         plt.annotate(word, (coord[0], coord[1]))
-        if(i==30):
+        if(i==100):
             break
     plt.savefig(f"models/{name}.png")
 
 def save_embeddings(embeddings, name):
-    embeddings = convert(embeddings)
+    sample = embedding.copy()
     emb = open(f"models/{name}.json", mode='w')
-    json.dump(convert(embeddings), emb, sort_keys=True)
+    json.dump(convert(sample), emb, sort_keys=True)
     emb.close()
