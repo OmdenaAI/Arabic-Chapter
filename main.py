@@ -53,7 +53,7 @@ if __name__ == '__main__':
     words, label, unique_words, word_dict = embeddings.encode_w2v(text, window_size=config['window_size'])
     words, label = np.array(words), np.array(label)
 
-    model = embeddings.train_w2v(words, label, epochs=config['epochs'], config['window_size'], validation_split=config['test_size'])
+    model = embeddings.train_w2v(words, label, epochs=config['epochs'], window_size=config['window_size'], validation_split=config['test_size'])
 
     word_embeddings = model.get_layer("embedding").get_weights()[0]
 
