@@ -2,7 +2,7 @@ import os
 
 from models.Word2Vec import Word2Vec
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 import json
 
 import numpy as np
