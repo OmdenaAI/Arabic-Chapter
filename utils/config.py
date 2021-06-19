@@ -8,11 +8,11 @@ config = {
     'maxlen':256,# 150
     'embedding_vector':10,
 
-    'method':'word2vec',#'keras
-    'stop_words':["and", "was", "of", "to", "a", "an", "the", "by", "s", "ll", "re", 'is', "be", "on", "in"],
+    'method':'keras',#word2vec
+    'stop_words':stop_words,
     'punctuations':"""'!"-#$%&'()*+,«».؛،/:؟?@[\]^_`{|}~""",
 
-    'epochs':2,
+    'epochs':8,
     # 'test_size':0.2,
     'window_size':2,
 
