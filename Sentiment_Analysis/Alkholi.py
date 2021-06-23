@@ -40,7 +40,7 @@ class Sentiment_analysis:
         LABEL_1:Negative class
         LABEL_2:Positive class
         : '''
-        if len(text.split(" ")) <= 200:
+        if len(text.split(" ")) <= 512:
             self.nlp.return_all_scores = return_all_scores
             return self.nlp(text)
         else:
