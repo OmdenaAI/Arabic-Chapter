@@ -31,6 +31,7 @@ class tokenization:
     def __init__(self, text, split_tokens=[' ', '-']):
 
         self.tokens = []
+        self.flat_tokens = []
         # Separate text into paragraphs at first
         self.paragraphs = ' '.join([prop_paragraph for prop_paragraph in text.split('\n') if len(prop_paragraph) > 1])
         self.sentences = Sentencizer(self.paragraphs).sentences
@@ -40,7 +41,7 @@ class tokenization:
 
     def _tokenize(self):
         """"
-         return tokens from the given sentences
+         create tokens from the given sentences
         """
         for text in self.sentences:
 
@@ -52,6 +53,7 @@ class tokenization:
 
             token = [x.strip() for x in text.split('</>') if x != '' and (x not in self._punctuations)]
             self.tokens.append(token)
+            self.flat_tokens.extend(token)
 
 
 def findOccurrences(s, ch):
