@@ -54,11 +54,11 @@ class huggingface_fine_tuner:
         self.__dataset=load_dataset('csv',data_files={'train':self.__training_path ,
                                    'validation':self.__validation_path})
     def __tokenization(self,example):
-        return self.tokenizer(example["essay"], truncation=True,max_length=self.__sequence_length)
+        return self.tokenizer(example["sentence"], truncation=True,max_length=self.__sequence_length)
     def __tokenize_dataset(self):
         self.__tokenized_dataset=self.__dataset.map(self.__tokenization, batched=True)
     
-    def compute_metrics(self,eval_pred):
+    def __compute_metrics(self,eval_pred):
         logits, labels = eval_pred
         predictions = np.argmax(logits, axis=-1)
         return self.__metric.compute(predictions=predictions, references=labels)
@@ -66,6 +66,8 @@ class huggingface_fine_tuner:
         self.__trainer.train()
         self.__pipeline=pipeline(task='sentiment-analysis',model=self.__model,tokenizer=self.__tokenizer)
     def save_model(self,path=None):
+        if path==None:
+            return "Please provide a path"
         self.__model.save_pretrained(path)
         self.__tokenizer.save_pretrained(path)
     def inference(self,text,return_all_scores=True):
