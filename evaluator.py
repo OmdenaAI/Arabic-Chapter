@@ -1,46 +1,77 @@
 
-import collections
 import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.metrics import mean_squared_error
-from pyarabic import araby
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
-from random import shuffle
-from pyarabic import araby
-from tensorflow.keras.layers import LSTM, GRU, Embedding, Dense, Input, InputLayer, Dropout, Bidirectional, BatchNormalization, Flatten, Reshape
+from tensorflow.keras.layers import GRU, Embedding, Dense,Dropout, Bidirectional 
 from tensorflow.keras.models import Sequential
-from keras.preprocessing.text import Tokenizer, text_to_word_sequence
 from keras.preprocessing.sequence import pad_sequences
-from sklearn.utils import shuffle
-from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
-from utils import tokenizer
-from utils.tokenizer import tokenization
 from keras.preprocessing.sequence import pad_sequences
-
+from sklearn import metrics
+from utils.tokenizer import tokenization
+from utils import helper
 
 class evaluator:
-    def __init__(self, embeddings_index, preprocessor):
+    def __init__(self, embeddings_index, preprocessor, embedding_size):
         self.embeddings_index = embeddings_index
         self.preprocessor = preprocessor
+        self.embedding_size = embedding_size
         return
 
+
+    def word_analogy(self):
+        """
+        Intrinsic evaluation mehtod that uses a translated
+        138-line subset of Google word analogy dataset
+        returns accuracy
+        """
+        data = open("data/word_analogy_subset.en.ar.txt").read().split('\n')
+        data = [x for x in data if len(x.split()) == 4]
+        cnt = 0
+        keys = list(self.embeddings_index.keys())
+        vectors = np.array(list(self.embeddings_index.values()))
+        norms = np.linalg.norm(vectors, axis=1)
+        for i in data:
+            i = self.preprocessor(i).split()
+            try:
+                v = self.embeddings_index[i[0]] -  self.embeddings_index[i[1]] + self.embeddings_index[i[2]]
+            except:
+                continue
+            unit = v / np.linalg.norm(v)
+            dists = np.dot(vectors, unit) / norms
+            best = np.argpartition(-dists, 10)[:10 + 1]
+            best = best.take(np.argsort((-dists).take(best)))
+            result = [(keys[sim], float(dists[sim]))
+                for sim in best]
+            sbv = result[:10]
+            for j in sbv:
+                if j[0] == i[3]:
+                    cnt += 1
+        return cnt/ len(data)
+
+
     def word_similarity(self):
-        #https://www.researchgate.net/publication/249313626_Arabic_Word_Semantic_Similarity
+        """
+        Intrinsic evaluation method that compares 
+        model word similarity to word similarity 
+        judged by human participants 
+
+        returns MSE (lower is better)
+        """
         y_true = []
         y_pred = []
-        for i in open("word_sim_dataset.txt").read().split('\n'):
+        for i in open("data/word_sim_dataset.txt").read().split('\n'):
             i = self.preprocessor(i)
             w1 = i.split()[-1]
-            w2 = i.split()[-2]
-            st = float(i.split()[-3]) / 4
+            w2 = i.split()[-2] 
+            st = float(i.split()[-3]) / 4 #dataset has scale from 0 to 4
             
             try:
                 w1 = self.embeddings_index[w1] 
@@ -57,58 +88,60 @@ class evaluator:
 
 
 
-    def concept_categorization(self):
-        #https://github.com/AzChaimae/Categorization-dataset-for-Arabic
-        dataset = pd.read_csv("Categorization data set.csv", sep=";", header=None)
+    def concept_categorization(self): 
+        """
+        Intrinsic evaluation method that computes 
+        purity score for clustering words
+        according to the concept they share
+
+        returns purity (higher is better)
+        """
+        dataset = pd.read_csv("data/Categorization data set.csv", sep=";", header=None)
         dataset.columns = ['concept','word']
+
+        cti = {}
+        for i,c in enumerate(np.unique(dataset.concept.values)):
+            cti[c] = i
+        y_true = dataset.concept.apply(lambda x: cti[x]).values
+        vs = []
+        preds = [''] * dataset.shape[0]
+        for ind,w in enumerate(dataset.word.values):
+            try:
+                vs.append(self.embeddings_index[w])
+            except:
+                preds[ind] = 0 
         km = KMeans(n_clusters=22, random_state=0)
-        km.fit(np.array(list(self.embeddings_index.values())).astype(np.float32))
-        preds = []
-        for t in np.unique(dataset.concept.values):
-            pred = []
-            for i in dataset[dataset.concept == t].word.values:
-                try:
-                    pred.append(km.predict(np.array([self.embeddings_index[i]]))[0])
-                except:
-                    pred.append("unk")
-            preds.append(pred)
-        
-        scores = []
-        for pred in preds:
-            a_counter = collections.Counter(pred)
-            most_common = a_counter.most_common(2)
-            most_freq = [most_common[0] if most_common[0][0] != 'unk' else most_common[1]][0]
-            scores.append(most_freq[1] / len([x for x in  pred]))
-        return sum(scores) / len(scores)
+        km.fit(np.array(vs).astype(np.float32))
+        for ind,w in enumerate(dataset.word.values):
+            if preds[ind] == '':
+                preds[ind] = km.predict(np.array([self.embeddings_index[w]]))[0]
+        contingency_matrix = metrics.cluster.contingency_matrix(y_true, preds)
+        #purity score
+        return np.sum(np.amax(contingency_matrix, axis=0)) / np.sum(contingency_matrix) 
 
     def sentiment_analysis(self):
+        """
+        Extrinsic evaluation method that trains 
+        a sentiment analysis model on a small balanced dataset 
+
+        returns accuracy
+        """
         train_pos = pd.read_csv("data/train_Arabic_tweets_positive_20190413.tsv", sep='\t', names=["label", "tweet"])
         train_neg = pd.read_csv("data/train_Arabic_tweets_negative_20190413.tsv", sep='\t', names=["label", "tweet"])
-        train = pd.concat([train_pos, train_neg]).sample(frac=1.0, random_state=0)
-        train.tweet = train.tweet.apply(self.preprocessor).apply(tokenization).apply(lambda x: [n for c in x.tokens for n in c])
+        train = pd.concat([train_pos, train_neg])
+        train.tweet = train.tweet.apply(self.preprocessor).apply(tokenization).apply(lambda x: x.tokens[0])
         le = LabelEncoder()
         le.fit(train.label)
         train.label = le.transform(train.label)
 
-        vocab = np.unique(np.array([x for y in train.tweet.values for x in y ]))
-        word_index = {w: i for i, w in enumerate(vocab)}
-        self.vocab_size, self.embedding_size = len(word_index),100
+        sentence_inds, vocab, self.num_tokens, word_index, index_word = helper.encode_tokens(train.tweet.values)
 
-        self.embeddings_matrix = np.zeros((self.vocab_size, self.embedding_size))
-        for word, i in word_index.items():
-            embedding_vector = self.embeddings_index.get(word)
-            if embedding_vector is not None:
-                self.embeddings_matrix[i] = embedding_vector
-            else:
-                self.embeddings_matrix[i] = np.random.uniform(size=(1, self.embedding_size))
 
-        seq_list = []
-        for words in train.tweet.values:
-            seq = []
-            for w in words:
-                seq.append(word_index.get(w,0))
-            seq_list.append(seq)
-        train_padded = pad_sequences(seq_list, padding="post", truncating="post", maxlen=100)
+        self.embeddings_matrix = helper.load_embedding_matrix(self.num_tokens, self.embedding_size, 
+                                                                word_index, self.embeddings_index)
+
+
+        train_padded = pad_sequences(sentence_inds, padding="post", truncating="post", maxlen=100)
 
         self.X_train, self.X_valid, self.y_train, self.y_valid = train_test_split(train_padded, train.label.values, test_size=0.5,random_state=0, stratify=train.label.values)
 
@@ -116,24 +149,27 @@ class evaluator:
         y_pred = model.predict(self.X_valid)
         return (np.argmax(y_pred, axis=1) == self.y_valid).sum() / self.y_valid.shape[0]
 
-    def word_analogy(self):
-        return
-    def nmt(self):
-        return
 
     def evaluate(self):
+        """
+        Runs all evaluation methods
+
+        returns a list of scores
+        """
         scores = []
+        scores.append(self.word_analogy())
+        print("Word Analogy (acc): ", scores[0])
         scores.append(self.word_similarity())
-        print("Word Similarity (MSE): ", scores[0])
+        print("Word Similarity (MSE): ", scores[1])
         scores.append(self.concept_categorization())
-        print("Concept Categorization) (acc): ", scores[1])
+        print("Concept Categorization (purity): ", scores[2])
         scores.append(self.sentiment_analysis())
-        print("Sentiment Analysis (acc): ", scores[2])
+        print("Sentiment Analysis (acc): ", scores[3])
         return scores
 
     def train_model(self):
         model = Sequential()
-        model.add(Embedding(input_dim=self.vocab_size, output_dim=self.embedding_size, weights=[self.embeddings_matrix], trainable=True))
+        model.add(Embedding(input_dim=self.num_tokens, output_dim=self.embedding_size, weights=[self.embeddings_matrix], trainable=True))
         model.add(Bidirectional(GRU(units = 32, return_sequences=True)))
         model.add(Bidirectional(GRU(units = 32, return_sequences=False)))
         model.add(Dense(16, activation = 'relu'))
