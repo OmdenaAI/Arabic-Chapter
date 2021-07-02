@@ -1,185 +1,142 @@
+import pickle
 import numpy as np
 import matplotlib.pyplot as plt
-
-from tqdm import tqdm
-from scipy import sparse
-import json
-
-from tensorflow.keras.layers import *
-from tensorflow.keras.models import *
+from bidi.algorithm import get_display
+import arabic_reshaper
+from sklearn.manifold import TSNE
+import random
 
 
-def word_dictionary(text):
-    text = set(list(text))
+def get_embedding_matrix(model, index_word=None, layer_name="word_embedding"):
+    """
+    Returns a dictionary of words and their vectors
+
+    Parameters
+
+    model: gensim or Keras model
+    index_word: dictionary of indices and corresponding words
+                passed only with Keras models
+    layer_name: name of embedding layer to be extracted
+                passed only with Keras models
+    """
+    embeddings_index = {}
+    if index_word == None:
+        for word,vector in zip(model.wv.index_to_key,model.wv.vectors):
+            coefs = np.asarray(vector, dtype='float32')
+            embeddings_index[word] = coefs
+    else:
+        embeds = model.get_layer(layer_name).get_weights()[0]
+        for idx in range(list(index_word.keys())[-1]):
+            embeddings_index[index_word[idx]] = embeds[idx]
+    return embeddings_index
+
+def load_embedding_matrix(vocabulary_size, embedding_dim, word_index, embeddings_index):
+    """
+    Returns a dictionary of indices and word vectors
+    of words that are available in the model 
+    if a word vector is not available a random vector is used
+
+    Parameters
+
+    vocabulary_size: number of unique tokens in training set
+    embedding_dim: dimension of word vectors
+    word_index: dictionary of words and their indices
+    embeddings_index: dictionary of words and their vectors
+    """
+    embeddings_matrix = np.zeros((vocabulary_size, embedding_dim))
+    for word, i in word_index.items():
+        embedding_vector = embeddings_index.get(word)
+        if embedding_vector is not None:
+            embeddings_matrix[i] = embedding_vector
+        else:
+            embeddings_matrix[i] = np.random.uniform(size=(1, embedding_dim))
+
+    return embeddings_matrix
+
+
+def encode_tokens(tokens):
+    """
+    Encodes list of list of tokens into list of list of token indices
+
+    Parameters:
+
+    tokens: list of list of tokens
+
+    Returns
+
+    sentence_inds: list of list of token indices
+    vocab: numpy array of unique tokens
+    num_tokens: number of unique tokens
+    word_index: dictionary of words and their indices 
+    index_word: dictionary of indices and their corresponding words
+    """
+    vocab = np.unique(np.array([y for x in tokens for y in x]))
+    num_tokens = vocab.shape[0]
+    word_index = {w: i for i, w in enumerate(vocab)}
+    index_word = {i: w for i, w in enumerate(vocab)}
+
+    sentence_inds = []
+    for s in tokens:
+        si = []
+        for t in s:
+            si.append(word_index[t])
+        sentence_inds.append(si)
+    return sentence_inds, vocab, num_tokens, word_index, index_word
+
+
+def plot(embeddings_index, name, n=100, seed=0):
+    """
+    Plots a random subset of length n of the embeddings
+
+    Parameters
+
+    embeddings_index: dictionary of words and their vectors
+    name: name of image to be saved
+    n: number of words to include in the plots
+    seed: random seed of subset of words
+    """
+    random.seed(seed)
+    labels = list(embeddings_index.keys())
+    tokens = list(embeddings_index.values())
+    labels, tokens = zip(*random.sample(list(zip(labels, tokens)), n))
+
     
-    dictionary = {}
-    for i, word in enumerate(text):
-        dictionary[word] = i
+    tsne_model = TSNE(perplexity=40, n_components=2, init='pca', n_iter=2500, random_state=0)
+    new_values = tsne_model.fit_transform(tokens)
 
-    return dictionary
+    x = []
+    y = []
+    for value in new_values:
+        x.append(value[0])
+        y.append(value[1])
+        
+    plt.figure(figsize=(16, 16)) 
+    for i in range(len(x)):
+        label = arabic_reshaper.reshape(labels[i])
+        label = get_display(label)
 
+        plt.scatter(x[i],y[i])
+        plt.annotate(label,
+                     xy=(x[i], y[i]),
+                     xytext=(5, 2),
+                     textcoords='offset points',
+                     ha='right',
+                     va='bottom')
+    plt.savefig(f"{name}.png")
 
-def similarity(text1, text2):
-    return np.sqrt(np.sum((text1-text2)**2))
+def save_embeddings(embeddings_index, filename):
+    """
+    Saves embeddings_index as a pickle file
+    """
+    embedding_file = open(filename, 'wb')
+    pickle.dump(embeddings_index, embedding_file)                     
+    embedding_file.close()
 
-def similar_words(token, embeddings, total=5):
-    list_ = embeddings[token]
-    similar={}
-
-    for key, value in embeddings.items():
-        if key != token:
-           similar[key] = similarity(list_, value) 
-
-    return sorted(similar.items(), key=lambda x: x[1])[0:total]
-
-
-def pretrained_data(vocab_size):
-    embeddings = dict()
-    word_vocab = set()
-    f = open('utils/glove.6B.50d.txt', 'r')
-
-    for lines in f:
-        line = lines.strip().split()
-        word = line[0]
-        coefs = np.asarray(line[1:], dtype='float32')
-        word_vocab.add(word)
-        embeddings[word] = coefs
-    f.close()
-
-    embedding_matrix = np.zeros((vocab_size+1, 300))
-    i=0
-    for word in word_vocab:
-        embedding_matrix[i] = embeddings[word]
-        i+=1
-    return embeddings, embedding_matrix
-
-def w2v(texts, window_size=1):
-    window = window_size
-    word_lists = []
-    all_text = []
-
-    for text in texts:
-        all_text += text 
-        for i, word in enumerate(text):
-            for w in range(window):
-                if i + 1 + w < len(text): 
-                    word_lists.append([word] + [text[(i + 1 + w)]]) 
-                if i - w - 1 >= 0:
-                    word_lists.append([word] + [text[(i - w - 1)]])
-
-    return word_lists, all_text
-
-def encode_w2v(word_lists, word_dict):
-    X = []
-    Y = []
-    l = len(word_dict)+1
-
-    for i, word_list in tqdm(enumerate(word_lists), total=len(word_lists)):
-        print(i, word_list)
-
-        main_word_index = word_dict.get(word_list[0])
-        context_word_index = word_dict.get(word_list[1])
-        print(main_word_index, context_word_index)
-
-        X_row = np.zeros(l)
-        Y_row = np.zeros(l)
-        print(X_row, Y_row)
-
-        X_row[main_word_index] = 1
-        Y_row[context_word_index] = 1
-        print(X_row, Y_row)
-
-        X.append(X_row)
-        Y.append(Y_row)
-        print(X, Y)
-        break
-    X = sparse.csr_matrix(X)
-    Y = sparse.csr_matrix(Y)
-    print(X, Y)
-    return X, Y
-
-def w2v2(texts, window_size=1):
-    window = window_size
-    word_lists = []
-    all_text = []
-
-    for text in texts:
-        all_text += text 
-        for i, word in enumerate(text):
-            for w in range(window):
-                if i + 1 + w < len(text) and i - w - 1 >= 0: 
-                    word_lists.append([text[(i - w - 1)]] + [word]+ [text[(i + 1 + w)]])
-    return word_lists, all_text
-
-def encode_w2v2(word_lists, word_dict):
-    X = []
-    Y = []
-    l = len(word_dict)+1
-
-    for i, word_list in tqdm(enumerate(word_lists), total=len(word_lists)):
-        # print(word_list)
-        main_word_index = word_dict.get(word_list[1])
-        context_word_index_before = word_dict.get(word_list[0])
-        context_word_index_after = word_dict.get(word_list[2])
-
-        X.append([context_word_index_before, context_word_index_after])
-        Y.append([main_word_index])
-    return X, Y
-
-
-
-def get_model(X, y, vocab_size, embedding_size, maxlen, method="keras"):
-    if method == "keras":
-        model = Sequential()
-        model.add(Embedding(vocab_size, embedding_size, input_length=maxlen ,name="embedding"))
-        model.add(Bidirectional(GRU(64)))
-        model.add(Flatten())
-        model.add(Dense(64, activation='relu'))
-        model.add(Dense(32, activation='relu'))
-        model.add(Dropout(0.1))
-        model.add(Dense(2, activation='softmax'))
-    
-    elif method == "word2vec":
-        model = Sequential()
-        model.add(Embedding(vocab_size, embedding_size, input_length=maxlen ,name="embedding"))
-        # model.add(Bidirectional(GRU(64)))
-        model.add(Flatten())
-        model.add(Dense(64, activation='relu'))
-        model.add(Dense(32, activation='relu'))
-        model.add(Dropout(0.1))
-        model.add(Dense(vocab_size, activation='softmax'))
-    
-
-    return model
-
-def convert(dictionary):
-    for i in dictionary:
-        dictionary[i] = str(dictionary[i])
-    return dictionary
-
-def get_embeddings(unique_words, word_dict, word_embeddings, vocab_size):
-    embeddings = {}
-    # print(len(unique_words), len(word_dict))
-    for i, word in enumerate(unique_words):
-        if(i >= vocab_size):
-            break
-        embeddings.update({
-            word: word_embeddings[word_dict.get(word)]
-            })
-    return embeddings
-
-def plot(word_dict, embeddings, name):
-    plt.figure(figsize=(10, 10))
-    for i, word in enumerate(list(word_dict.keys())):
-        coord = embeddings.get(word)
-        plt.scatter(coord[0], coord[1])
-        plt.annotate(word, (coord[0], coord[1]))
-        if(i==100):
-            break
-    plt.savefig(f"models/{name}.png")
-
-def save_embeddings(embeddings, name):
-    sample = embeddings.copy()
-    emb = open(f"models/{name}.json", mode='w')
-    json.dump(convert(sample), emb, sort_keys=True)
-    emb.close()
+def load_embeddings(filename):
+    """
+    Loads embeddings_index from pickle file
+    """
+    embedding_file = open(filename, 'rb')     
+    embeddings_index = pickle.load(embedding_file)
+    embedding_file.close()
+    return embeddings_index

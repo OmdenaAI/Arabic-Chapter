@@ -1,83 +1,118 @@
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-from tqdm import tqdm
-
-from sklearn import preprocessing, model_selection
-from scipy import sparse
+##Based on: https://github.com/ozgurdemir/word2vec-keras
 
 import tensorflow as tf
-from tensorflow.keras.layers import *
-from tensorflow.keras.callbacks import *
-from tensorflow.keras.preprocessing.text import one_hot
-from tensorflow.keras.preprocessing.sequence import pad_sequences 
+from tensorflow.keras.layers import Input, Embedding, dot, Dense, Flatten
+from tensorflow.keras.models import Model
+from tensorflow.keras.initializers import RandomNormal
+import random
+from tensorflow.keras.preprocessing.text import Tokenizer
+import numpy as np
 
-from utils import helper
 
 
 class Word2Vec:
-    def __init__(self, tokenizer, vocab_size=10000, maxlen=256, embedding_vector=5, method="keras"):
-        self.method = method
-        self.tokenizer = tokenizer
-        self.vocab_size = vocab_size
-        self.maxlen = maxlen
-        self.embedding_vector = embedding_vector
 
-    def tokenize(self, text, punctuations=[], stop_words=[]):
-        tokens, maxlen, vocab = self.tokenizer(text, punctuations, stop_words)
-        if self.maxlen == 'auto':
-            self.maxlen = maxlen
-        if self.vocab_size == 'auto':
-            self.vocab_size = vocab
-        # print(vocab, maxlen)
-        return tokens
 
-    def encode(self, text, label):
-        vector, temp, all_ = [], [], []
-        for d in tqdm(text, total=len(text)):
-            for i in d:
-                temp.extend(one_hot(i, self.vocab_size))
-            vector.append(temp)
-            temp=[]
-        vector = pad_sequences(vector, maxlen=self.maxlen, padding="post")
-        for x in text:
-            all_.extend(x)
-        word_dict = helper.word_dictionary(all_)
-        onehot_encoder = preprocessing.OneHotEncoder(sparse=False)
-        label = np.array(label).reshape(len(label), 1)
-        label = onehot_encoder.fit_transform(label)
-        return vector, label, list(word_dict.keys()), word_dict
+    def __init__(self):
 
-    def train_keras(self, text, label, epochs=5, validation_split=0.2):
+        return
 
-        model = helper.get_model(text, label, self.vocab_size, self.embedding_vector, self.maxlen, self.method)
-        model.compile(optimizer="SGD", loss=tf.keras.losses.CategoricalCrossentropy(), metrics=["accuracy"])
-        # print(model.summary())
 
-        es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience=4)  
-        mc = ModelCheckpoint('models/word_embeddings_NN.h5', monitor='val_loss', mode='min', save_best_only=True,verbose=1)
+    def word2vec_model(self, learn_rate=0.05, vocab_size=10, vector_dim=3,seed=None):
+        stddev = 1.0 / vector_dim
+        initializer = RandomNormal(mean=0.0, stddev=stddev, seed=seed)
 
-        model.fit(text, label, validation_split=validation_split, epochs=epochs, callbacks=[es, mc], verbose=1)
+        word_input = Input(shape=(1,), name="word_input")
+        word = Embedding(input_dim=vocab_size, output_dim=vector_dim, input_length=1,
+                         name="word_embedding", embeddings_initializer=initializer)(word_input)
 
+        context_input = Input(shape=(1,), name="context_input")
+        context = Embedding(input_dim=vocab_size, output_dim=vector_dim, input_length=1,
+                            name="context_embedding", embeddings_initializer=initializer)(context_input)
+
+        merged = dot([word, context], axes=2, normalize=False, name="dot")
+        merged = Flatten()(merged)
+        output = Dense(1, activation='sigmoid', name="output")(merged)
+
+        optimizer = tf.keras.optimizers.Adagrad(learn_rate)
+        model = Model(inputs=[word_input, context_input], outputs=output)
+        model.compile(loss="binary_crossentropy", optimizer=optimizer)
         return model
 
-    def encode_w2v(self, texts, window_size=2):
-        word_lists, all_text = helper.w2v2(texts, window_size=window_size)
-        word_dict = helper.word_dictionary(all_text)
-        X, Y = helper.encode_w2v2(word_lists, word_dict)
-        return X, Y, list(word_dict.keys()), word_dict
 
-    def train_w2v(self, words, label, epochs=5, window_size=2, validation_split=0.2):
+    def train(self, seqs, window_size, vocab_size, vector_dim, lr, negative_samples, batch_size, epochs, seed=None,verbose=0):
+        """
+        Trains Word2Vec model
 
-        model = helper.get_model(words, label, self.vocab_size, self.embedding_vector, window_size, method=self.method)
-        model.compile(optimizer="SGD", loss=tf.keras.losses.SparseCategoricalCrossentropy(), metrics=["accuracy"])
-        # print(model.summary())
 
-        es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience=4)  
-        mc = ModelCheckpoint('models/word_embeddings_w2v.h5', monitor='val_loss', mode='min', save_best_only=True,verbose=1)
+        Parameters 
 
-        # model.fit(trainX.toarray(), trainY.toarray(), validation_data=(validX.toarray(), validY.toarray()), epochs=epochs, callbacks=[es, mc], verbose=1)
-        model.fit(words, label, validation_split=validation_split, epochs=epochs, callbacks=[es, mc], verbose=1)
+        seqs: list of list of indices of each token in corpus
+        vector_dim: dimesnion of word vectors to be trained
+        
 
+        Returns
+
+        model: trained Word2Vec model
+
+
+        """
+
+
+        seqs = [y for x in seqs for y in x]    
+        sequence_length = len(seqs)
+        seqs = np.array(seqs)
+
+        negative_weight = 1.0 / negative_samples
+        class_weight = {1: 1.0, 0: negative_weight}
+
+        
+        approx_steps_per_epoch = (sequence_length * (
+                window_size * 2.0) + sequence_length * negative_samples) / batch_size
+        batch_iterator = self.batch_iterator(seqs, window_size, negative_samples, batch_size, seed)
+        model = self.word2vec_model(lr, vocab_size, vector_dim)
+        model.fit(batch_iterator,
+                                 steps_per_epoch=approx_steps_per_epoch,
+                                 epochs=epochs,
+                                 verbose=verbose,
+                                 class_weight=class_weight,
+                                 max_queue_size=100)
         return model
 
+
+    def skip_gram_iterator(self, sequence, window_size, negative_samples, seed):
+        """ An iterator which at each step returns a tuple of (word, context, label) """
+        random.seed(seed)
+        sequence_length = sequence.shape[0]
+        random_float = 0
+        epoch = 0
+        i = 0
+        while True:
+            window_start = max(0, i - window_size)
+            window_end = min(sequence_length, i + window_size + 1)
+            for j in range(window_start, window_end):
+                if i != j:
+                    yield (sequence[i], sequence[j], 1)
+
+            for negative in range(negative_samples):
+                random_float = random.uniform(0, 1)
+                j = int(random_float * sequence_length)
+                yield (sequence[i], sequence[j], 0)
+
+            i += 1
+            if i == sequence_length:
+                epoch += 1
+            i = 0
+
+    def batch_iterator(self, sequence,  window_size,  negative_samples,  batch_size, seed):
+        iterator = self.skip_gram_iterator(sequence, window_size, negative_samples, seed)
+        words = np.empty(shape=batch_size)
+        contexts = np.empty(shape=batch_size)
+        labels = np.empty(shape=batch_size)
+        while True:
+            for i in range(batch_size):
+                word, context, label = next(iterator)
+                words[i] = word
+                contexts[i] = context
+                labels[i] = label
+                yield ([words, contexts], labels)
