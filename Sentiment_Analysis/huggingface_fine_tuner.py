@@ -8,8 +8,8 @@ class huggingface_fine_tuner:
         '''
         inputs: 
         model_checkpoint: the name or the path of the huggingface model to be fine-tuned
-        training_path: the path to the csv file of the training dataset
-        validation_path: the path to the csv file of the validation dataset
+        training_path: the path to the csv file of the training dataset- the dataset fields are {labels,sentence}
+        validation_path: the path to the csv file of the validation dataset-  the dataset fields are {labels,sentence}
         num_labels: the number of the labels in the dataset
         sequence_length: the preferred length of the sentence
         learning_rate: the learning rate of the model
