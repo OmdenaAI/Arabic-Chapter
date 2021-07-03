@@ -21,7 +21,7 @@ def get_embedding_matrix(model, index_word=None, layer_name="word_embedding"):
     """
     embeddings_index = {}
     if index_word == None:
-        for word,vector in zip(model.wv.index_to_key,model.wv.vectors):
+        for word,vector in zip(model.wv.index2word,model.wv.vectors):
             coefs = np.asarray(vector, dtype='float32')
             embeddings_index[word] = coefs
     else:

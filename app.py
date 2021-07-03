@@ -5,6 +5,7 @@ import gensim
 import numpy as np
 import pandas as pd
 from flask import Flask, jsonify, request
+from flask_ngrok import run_with_ngrok
 from pyarabic import araby
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.utils import to_categorical
@@ -17,6 +18,7 @@ from utils.tokenizer import tokenization
 np.random.seed(0)
 
 app = Flask(__name__)
+run_with_ngrok(app)
 
 def normalize(text):
     text = araby.strip_harakat(text)
@@ -55,29 +57,22 @@ def get_preprocessed(text):
 
 def get_model(name):
     if name == "aravec":
-        if not os.path.exists("pretrained/full_grams_sg_100_twitter/"):
-            with zipfile.ZipFile("pretrained/full_grams_sg_100_twitter.zip", 'r') as zipf:
-                zipf.extractall("pretrained/")
-        model = gensim.models.Word2Vec.load("pretrained/full_grams_sg_100_twitter/mottagah.mdl")
-        return model
-    elif name == "mottagah":
-        if not os.path.exists("pretrained/mottagah/"):
-            with zipfile.ZipFile("pretrained/mottagah.zip", 'r') as zipf:
-                zipf.extractall("pretrained/")
-        model = gensim.models.Word2Vec.load("pretrained/mottagah/mottagah.mdl")
+        aravec = AraVec()
+        model_path = aravec.get_model("Twitter_SkipGram_100", unzip=True)
+        model = aravec.load_model(model_path)
         return model
 
 def get_embeddings(tokens, model):
     embeddings = dict()
     embeddings_index = helper.get_embedding_matrix(model)
     for token in tokens:
-        embeddings[token] = embeddings_index[token]
+        embeddings[token] = embeddings_index[token].tolist()
     return embeddings
 
 def get_similar(tokens, model):
     similar = dict()
     for token in tokens:
-        similar[token] = model.wv.most_similar(token)
+        similar[token] = model.wv.most_similar(token, topn=5)
     return similar
     
 
@@ -88,32 +83,18 @@ def root():
         'similar words' : "to get similar words use /aravec/similar/"
     })
 
-@app.route("/aravec/embedding", methods=['POST'])
+@app.route("/aravec/embedding", methods=['GET'])
 def predict_aravec():
     text = request.args.get('text')
     text = get_preprocessed(text)
-    model = get_model("Twitter_SkipGram_100", unzip=True)
+    model = get_model("aravec")
     return get_embeddings(text, model)
 
-@app.route("/word2vec/embedding", methods=['POST'])
-def predict_word2vec():
-    text = request.args.get('text')
-    text = get_preprocessed(text)
-    model = get_model('mottagah')
-    return get_embeddings(text, model)
-
-@app.route("/word2vec/similar", methods=['POST'])
-def predict_word2vec_similar():
-    text = request.args.get('text')
-    text = get_preprocessed(text)
-    model = get_model('mottagah')
-    return get_similar(text, model)
-
-@app.route("/aravec/similar", methods=['POST'])
+@app.route("/aravec/similar", methods=['GET'])
 def predict_aravec_similar():
     text = request.args.get('text')
     text = get_preprocessed(text)
-    model = get_model("Twitter_SkipGram_100", unzip=True)
+    model = get_model("aravec")
     return get_similar(text, model)
 
 
