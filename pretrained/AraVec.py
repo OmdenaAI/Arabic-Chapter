@@ -1,4 +1,5 @@
 import gensim
+import os
 import json
 import urllib.request
 import zipfile
@@ -32,17 +33,25 @@ class AraVec:
         assert model_name in self.models.keys() , "model_name is not inserted correctly"
 
         link = self.models[model_name]
-        filename =  link.split('/')[-1]
-        urllib.request.urlretrieve (link, filename)
-        print("Model Downloaded")
+        filename =  "pretrained/" + link.split('/')[-1]
+        if not os.path.exists(filename):
+            urllib.request.urlretrieve (link, filename)
+            print("Model Downloaded")
 
-        if unzip == True:
+            if unzip == True:
+                with zipfile.ZipFile(filename, 'r') as zipf:
+                    zipf.extractall("pretrained/")
+                model_file = filename.replace('zip','mdl')
+                print("Model Unzipped ")
+
+        elif not os.path.exists(filename.replace('zip','mdl')):
             with zipfile.ZipFile(filename, 'r') as zipf:
-                zipf.extractall()
+                zipf.extractall("pretrained/")
             model_file = filename.replace('zip','mdl')
             print("Model Unzipped ")
+
         else:
-            model_file = filename
+            model_file = filename.replace('zip','mdl')
         return model_file
         
 
