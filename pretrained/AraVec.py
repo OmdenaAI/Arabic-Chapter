@@ -32,7 +32,7 @@ class AraVec:
         assert model_name in self.models.keys() , "model_name is not inserted correctly"
 
         link = self.models[model_name]
-        filename =  link.split('/')[-1]
+        filename =  "pretrained/" + link.split('/')[-1]
         urllib.request.urlretrieve (link, filename)
         print("Model Downloaded")
 
