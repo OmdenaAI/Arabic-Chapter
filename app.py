@@ -64,14 +64,17 @@ def get_model(name):
             url = "https://drive.google.com/uc?id=11nmKLbIC1VMquO_FjLy9t6wxt1AyQFO3"
             output = "models/mottagah.zip"
             gdown.download(url, output, quiet=False)
+            print("Model Downloaded")
             with zipfile.ZipFile("models/mottagah.zip", 'r') as zipf:
                 zipf.extractall("models/")
             model = gensim.models.Word2Vec.load("models/mottagah/mottagah")
+            print("Model Unzipped ")
 
         elif not os.path.exists("models/mottagah/"):
             with zipfile.ZipFile("models/mottagah.zip", 'r') as zipf:
                 zipf.extractall("models/")
             model = gensim.models.Word2Vec.load("models/mottagah/mottagah")
+            print("Model Unzipped ")
 
         else:
             model = gensim.models.Word2Vec.load("models/mottagah/mottagah")
