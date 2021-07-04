@@ -47,16 +47,19 @@ def preprocess(text):
 def get_tokens(text):
     return tokenization(text).tokens[0]
 
-
-def get_preprocessed(text):
+def get_preprocessed_word2vec(text):
     text = preprocess(text)
     tokens = get_tokens(text)
+    return tokens
+
+def get_preprocessed_aravec(text):
+    tokens = [helper.clean_str(x) for x in text.strip().split()]
     return tokens
 
 def get_model(name):
     if name == "aravec":
         aravec = AraVec()
-        model_path = aravec.get_model("Twitter_SkipGram_100", unzip=True)
+        model_path = aravec.get_model("Twitter_CBOW_100", unzip=True)
         model = aravec.load_model(model_path)
         return model
     elif name == "word2vec":
@@ -104,28 +107,28 @@ def root():
 @app.route("/aravec/embedding", methods=['POST'])
 def predict_aravec():
     text = request.args.get('text')
-    text = get_preprocessed(text)
+    text = get_preprocessed_aravec(text)
     model = get_model("aravec")
     return get_embeddings(text, model)
 
 @app.route("/aravec/similar", methods=['POST'])
 def predict_aravec_similar():
     text = request.args.get('text')
-    text = get_preprocessed(text)
+    text = get_preprocessed_aravec(text)
     model = get_model("aravec")
     return get_similar(text, model)
 
 @app.route("/word2vec/embedding", methods=['POST'])
 def predict_word2vec():
     text = request.args.get('text')
-    text = get_preprocessed(text)
+    text = get_preprocessed_word2vec(text)
     model = get_model("word2vec")
     return get_embeddings(text, model)
 
 @app.route("/word2vec/similar", methods=['POST'])
 def predict_word2vec_similar():
     text = request.args.get('text')
-    text = get_preprocessed(text)
+    text = get_preprocessed_word2vec(text)
     model = get_model("word2vec")
     return get_similar(text, model)
 
