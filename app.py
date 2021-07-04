@@ -13,7 +13,7 @@ from tensorflow.keras.utils import to_categorical
 from evaluator import evaluator
 from pretrained.AraVec import AraVec
 from utils import helper
-from utils.tokenizer import tokenization
+from utils.tokenizer import tokenization, clean_str
 
 np.random.seed(0)
 
@@ -53,7 +53,7 @@ def get_preprocessed_word2vec(text):
     return tokens
 
 def get_preprocessed_aravec(text):
-    tokens = [helper.clean_str(x) for x in text.strip().split()]
+    tokens = [clean_str(x) for x in text.strip().split()]
     return tokens
 
 def get_model(name):
