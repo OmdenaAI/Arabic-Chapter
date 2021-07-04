@@ -6,7 +6,6 @@ import gensim
 import numpy as np
 import pandas as pd
 from flask import Flask, jsonify, request
-from flask_ngrok import run_with_ngrok
 from pyarabic import araby
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.utils import to_categorical
@@ -19,7 +18,6 @@ from utils.tokenizer import tokenization
 np.random.seed(0)
 
 app = Flask(__name__)
-run_with_ngrok(app)
 
 def normalize(text):
     text = araby.strip_harakat(text)
@@ -100,33 +98,33 @@ def root():
         'similar words' : "to get similar words use /aravec/similar/"
     })
 
-@app.route("/aravec/embedding", methods=['GET'])
+@app.route("/aravec/embedding", methods=['POST'])
 def predict_aravec():
     text = request.args.get('text')
     text = get_preprocessed(text)
     model = get_model("aravec")
-    return jsonify(get_embeddings(text, model))
+    return get_embeddings(text, model)
 
-@app.route("/aravec/similar", methods=['GET'])
+@app.route("/aravec/similar", methods=['POST'])
 def predict_aravec_similar():
     text = request.args.get('text')
     text = get_preprocessed(text)
     model = get_model("aravec")
-    return jsonify(get_similar(text, model))
+    return get_similar(text, model)
 
-@app.route("/word2vec/embedding", methods=['GET'])
+@app.route("/word2vec/embedding", methods=['POST'])
 def predict_word2vec():
     text = request.args.get('text')
     text = get_preprocessed(text)
     model = get_model("word2vec")
-    return jsonify(get_embeddings(text, model))
+    return get_embeddings(text, model)
 
-@app.route("/word2vec/similar", methods=['GET'])
+@app.route("/word2vec/similar", methods=['POST'])
 def predict_word2vec_similar():
     text = request.args.get('text')
     text = get_preprocessed(text)
     model = get_model("word2vec")
-    return jsonify(get_similar(text, model))
+    return get_similar(text, model)
 
 
 
