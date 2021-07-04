@@ -1,10 +1,12 @@
 import zipfile
 
+import gdown
 import os
 import gensim
 import numpy as np
 import pandas as pd
 from flask import Flask, jsonify, request
+from flask_ngrok import run_with_ngrok
 from pyarabic import araby
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.utils import to_categorical
@@ -17,6 +19,7 @@ from utils.tokenizer import tokenization
 np.random.seed(0)
 
 app = Flask(__name__)
+run_with_ngrok(app)
 
 def normalize(text):
     text = araby.strip_harakat(text)
@@ -50,7 +53,6 @@ def get_tokens(text):
 def get_preprocessed(text):
     text = preprocess(text)
     tokens = get_tokens(text)
-    print(tokens)
     return tokens
 
 def get_model(name):
@@ -58,6 +60,23 @@ def get_model(name):
         aravec = AraVec()
         model_path = aravec.get_model("Twitter_SkipGram_100", unzip=True)
         model = aravec.load_model(model_path)
+        return model
+    elif name == "word2vec":
+        if not os.path.exists("models/mottagah.zip"):
+            url = "https://drive.google.com/uc?id=11nmKLbIC1VMquO_FjLy9t6wxt1AyQFO3"
+            output = "models/mottagah.zip"
+            gdown.download(url, output, quiet=False)
+            with zipfile.ZipFile("models/mottagah.zip", 'r') as zipf:
+                zipf.extractall("models/")
+            model = gensim.models.Word2Vec.load("models/mottagah/mottagah")
+
+        elif not os.path.exists("models/mottagah/"):
+            with zipfile.ZipFile("models/mottagah.zip", 'r') as zipf:
+                zipf.extractall("models/")
+            model = gensim.models.Word2Vec.load("models/mottagah/mottagah")
+
+        else:
+            model = gensim.models.Word2Vec.load("models/mottagah/mottagah")
         return model
 
 def get_embeddings(tokens, model):
@@ -81,19 +100,33 @@ def root():
         'similar words' : "to get similar words use /aravec/similar/"
     })
 
-@app.route("/aravec/embedding", methods=['POST'])
+@app.route("/aravec/embedding", methods=['GET'])
 def predict_aravec():
     text = request.args.get('text')
     text = get_preprocessed(text)
     model = get_model("aravec")
-    return get_embeddings(text, model)
+    return jsonify(get_embeddings(text, model))
 
-@app.route("/aravec/similar", methods=['POST'])
+@app.route("/aravec/similar", methods=['GET'])
 def predict_aravec_similar():
     text = request.args.get('text')
     text = get_preprocessed(text)
     model = get_model("aravec")
-    return get_similar(text, model)
+    return jsonify(get_similar(text, model))
+
+@app.route("/word2vec/embedding", methods=['GET'])
+def predict_word2vec():
+    text = request.args.get('text')
+    text = get_preprocessed(text)
+    model = get_model("word2vec")
+    return jsonify(get_embeddings(text, model))
+
+@app.route("/word2vec/similar", methods=['GET'])
+def predict_word2vec_similar():
+    text = request.args.get('text')
+    text = get_preprocessed(text)
+    model = get_model("word2vec")
+    return jsonify(get_similar(text, model))
 
 
 
