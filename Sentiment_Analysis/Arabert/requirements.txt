@@ -1,0 +1,5 @@
+optuna==2.3.0
+transformers==4.2.1
+farasapy
+pyarabic
+# !git clone https://github.com/aub-mind/arabert
