@@ -7,7 +7,7 @@ from sklearn.manifold import TSNE
 import random
 
 
-def get_embedding_matrix(model, index_word=None, layer_name="word_embedding"):
+def get_embedding_matrix(model, index_word=None, vector_file=False, layer_name="word_embedding"):
     """
     Returns a dictionary of words and their vectors
 
@@ -16,12 +16,19 @@ def get_embedding_matrix(model, index_word=None, layer_name="word_embedding"):
     model: gensim or Keras model
     index_word: dictionary of indices and corresponding words
                 passed only with Keras models
+    vector_file: True when loading with KeyedVectors.load (vector-only file)
+                 False when loading using Word2Vec.load (full model)
+
     layer_name: name of embedding layer to be extracted
                 passed only with Keras models
     """
     embeddings_index = {}
     if index_word == None:
-        for word,vector in zip(model.wv.index2word,model.wv.vectors):
+        if vector_file:
+            words_vectors = zip(model.index_to_key,model.vectors)
+        else:
+            words_vectors = zip(model.wv.index_to_key,model.wv.vectors)
+        for word,vector in words_vectors:
             coefs = np.asarray(vector, dtype='float32')
             embeddings_index[word] = coefs
     else:
