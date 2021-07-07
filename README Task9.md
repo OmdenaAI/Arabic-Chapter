@@ -5,4 +5,4 @@ particular part of a speech based on its definition and context.
 ### Description 
 File contains Datasets and Model
 > Model
-Model used for POS Tagging is BILSTM          
+- Model used for POS Tagging is BILSTM          
