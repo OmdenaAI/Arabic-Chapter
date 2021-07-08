@@ -1,4 +1,7 @@
 import re
+import pyarabic.araby as araby
+
+
 class Sentencizer:
     """"
     Class for splitting paragraphs to sentences
@@ -81,9 +84,43 @@ def fullStopCheck(text, indices):
 
     return text
 
+def normalize(text):
+    """
+    Returns cleaned tokens for word2vec model
+
+    Parameters
+
+    text: a single unprocessed word
+    """
+    text = araby.strip_harakat(text)
+    text = araby.strip_tashkeel(text)
+    text = araby.strip_small(text)
+    text = araby.strip_tatweel(text)
+    text = araby.strip_shadda(text)
+    text = araby.strip_diacritics(text)
+    text = araby.normalize_ligature(text)
+    text = araby.normalize_teh(text)
+    text = araby.normalize_alef(text)
+    return text
+
+def strip_all(text):
+    l = [' ', '0', '1', '2', '3', '4', '5', '6',
+       '7', '8', '9', '?', '.', '.', '?',
+       '؟', 'ء', 'ؤ', 'ئ', 'ا', 'ب', 'ت', 'ث',
+       'ج', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ',
+       'ع', 'غ', 'ف', 'ق', 'ك', 'ل', 'م', 'ن', 'ه', 'و', 'ي', '٠', '١',
+       '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩']
+    return "".join([x for x in text if x in l])
+
+def process(text):
+    text = normalize(text)
+    text = strip_all(text)
+    return araby.tokenize(text)
+
+
 def clean_str(text):
     """
-    Returns cleaned tokens
+    Returns cleaned tokens for aravec model
 
     Parameters
 
