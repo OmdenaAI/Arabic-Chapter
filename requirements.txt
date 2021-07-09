@@ -1,0 +1,8 @@
+huggingface-hub==0.0.12
+tokenizers==0.10.3
+transformers==4.8.2
+farasapy==0.0.13
+pyarabic==0.6.11
+flask==1.1.4
+gdown==3.13.0
+joblib
