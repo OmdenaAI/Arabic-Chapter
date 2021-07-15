@@ -34,15 +34,17 @@ class WordEmbedding:
     def get_analogy(self, tokens, model):
         positive = [tokens[1], tokens[2]]
         negative = [tokens[0]]
-        print("neg ", negative)
         out = dict()
-        analogies = model.most_similar(positive=positive, negative=negative, topn=20) 
-        
-        for word, sim in analogies:
-            out[word] = sim
-        out_ordered = dict(sorted(out.items(), key=lambda analogy: analogy[1], reverse=True))
-        return out_ordered
+        try:
+            analogies = model.most_similar(positive=positive, negative=negative, topn=20) 
+            for word, sim in analogies:
+                out[word] = sim
+            out_ordered = dict(sorted(out.items(), key=lambda analogy: analogy[1], reverse=True))
+            return out_ordered
+        except:
+            return "One of the words wasn't found in the model's vocabulary"
 
+        
     def get_similar(self, tokens, model):
         similar = dict()
         for token in tokens:
