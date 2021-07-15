@@ -2,7 +2,7 @@ from gensim.models import KeyedVectors
 
 from utils import helper
 from utils.download import download
-from utils.tokenizer import clean_str, normalize, strip_all, tokenization, process
+from utils.tokenizer import clean_str, process
 
 
 class WordEmbedding:
@@ -30,16 +30,6 @@ class WordEmbedding:
             model = KeyedVectors.load("models/mottagah_large_wv.wordvectors", mmap='r')
             return model
 
-    def get_embeddings(self, tokens, model):
-        embeddings = dict()
-        embeddings_index = helper.get_embedding_matrix(model)
-        for token in tokens:
-            try:
-                embeddings[token] = embeddings_index[token].tolist()
-            except :
-                embeddings[token] = ["word not found"]
-        return embeddings
-
         
     def get_analogy(self, tokens, model):
         positive = [tokens[1], tokens[2]]
@@ -47,23 +37,19 @@ class WordEmbedding:
         print("neg ", negative)
         out = dict()
         analogies = model.most_similar(positive=positive, negative=negative, topn=20) 
+        
         for word, sim in analogies:
             out[word] = sim
-        return out
+        out_ordered = dict(sorted(out.items(), key=lambda analogy: analogy[1], reverse=True))
+        return out_ordered
 
-    def get_similar(self, tokens, model, include_token=False):
+    def get_similar(self, tokens, model):
         similar = dict()
         for token in tokens:
             try:
                 similar_list = model.most_similar(token, topn=20)
-                if include_token:
-                    similar[token] = similar_list
-                    continue
-                similar_edited = []
-                for word, sim in similar_list:
-                    if not token in word:
-                        similar_edited.append((word, sim))
-                similar[token] = similar_edited
+                similar[token] = similar_list
             except :
                 similar[token] = ["word not found"]
+        
         return similar
