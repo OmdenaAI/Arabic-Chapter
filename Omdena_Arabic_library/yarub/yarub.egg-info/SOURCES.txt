@@ -1,0 +1,10 @@
+CHANGELOG.txt
+LICENCE.txt
+MANIFEST.in
+README.md
+setup.py
+yarub/__init__.py
+yarub.egg-info/PKG-INFO
+yarub.egg-info/SOURCES.txt
+yarub.egg-info/dependency_links.txt
+yarub.egg-info/top_level.txt
