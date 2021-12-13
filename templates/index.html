@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omdena Stemmer/Normalizer</title>
+</head>
+<body>
+    <form action="" method="post">
+        <textarea name="inp" id="" cols="30" rows="10"></textarea>
+        <div cols="30" rows="10">
+            {% if words: %}
+            {% for word in words: %}
+                {{word}}
+            {% endfor %}
+            {% endif %}
+        </div>
+        <input type="submit" value="Normalize">
+    </form>
+</body>
+</html>
